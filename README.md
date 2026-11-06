@@ -1,20 +1,30 @@
-# Frontend iSIKHNAS Vaksinasi
+# iSIKHNAS Vaksinasi
 
-Frontend prototype for an iSIKHNAS-linked animal vaccination and coverage monitoring module.
+Responsive prototype for coordinating animal vaccination programmes across species, teams and villages.
 
-## Scope in this first step
+## Current scope
 
-- Responsive coordinator dashboard and field-worker mode
-- Multi-species filters and species-aware record fields
-- Village-level administrative coverage indicators
-- Separate independent coverage survey view
-- Sample logistics dashboard
-- Mock data only; no backend or iSIKHNAS integration is connected yet
+- Coordinator dashboard with completeness, administrative coverage and timeliness indicators.
+- Multi-species filters and mobile field-worker recording interface.
+- Separate coverage-survey module for independent assessors.
+- Login screen with Supabase email/password authentication and demo entry.
+- Supabase database schema with role-based Row Level Security for programmes, targets, vaccination sessions and events, coverage surveys, and logistics.
 
-## Run locally
+## Open the mockup
 
-Open \`index.html\` in a modern browser. The prototype uses plain HTML, CSS, and JavaScript, with no build step or external dependencies.
+Use the hosted Site preview shared in the project conversation, then choose **Lihat mockup dengan akun demo**. The displayed programme and figures are illustrative. Demo interactions are not saved to the database.
 
-## Important
+## Backend
 
-All values, places, and survey figures are illustrative demo data. Coverage methodology and data exchange with iSIKHNAS must be agreed before production use.
+Supabase project region: Singapore (Asia Southeast).
+
+The initial schema and security migrations are in `backend/migrations`. The app uses the browser-safe publishable key in `supabase-config.js`; this key is intended to be public, while row-level security is enabled on all application tables. Never commit a service-role key.
+
+User accounts must be created by an administrator. Assign system roles in `user_roles` and programme-specific roles in `program_members`. Disable public sign-up for a government workflow.
+
+## Current limitations
+
+- The dashboard still uses illustrative sample values; authenticated dashboard queries and real vaccine-record writes are the next implementation step.
+- Offline synchronization is represented in the data model with client-generated idempotency IDs, but the browser queue is not implemented yet.
+- No API connection to iSIKHNAS is configured. Confirm identifiers, data dictionary, validation rules, and credentials with the iSIKHNAS data owner before production exchange.
+- Coverage methodology should be agreed before using survey results as programme performance estimates.
