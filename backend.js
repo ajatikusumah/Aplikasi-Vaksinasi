@@ -65,7 +65,7 @@ async function selectProgram(id){
   if(targetError){toast("Gagal memuat target desa.");targets=[]}else targets=targetData||[];
   renderRegionOptions();
   const [{data:vaccData,error:vaccError},{data:surveyData,error:surveyError}]=await Promise.all([
-    db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at").eq("program_id",id).order("vaccinated_at",{ascending:false}).limit(1000),
+    db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at,latitude,longitude").eq("program_id",id).order("vaccinated_at",{ascending:false}).limit(1000),
     db.from("coverage_surveys").select("village_code,species,survey_date,sampled_households,animals_eligible,animals_verified_vaccinated,method").eq("program_id",id).order("survey_date",{ascending:false}).limit(1000)
   ]);
   if(vaccError)toast("Gagal memuat catatan vaksinasi.");if(surveyError)toast("Gagal memuat hasil survei.");
@@ -135,6 +135,7 @@ function refreshDashboard(){
  const region=$("regionFilter").value||"all";
  const filteredTargets=targets.filter(t=>(species==="all"||t.species===species)&&(region==="all"||t.village_code===region));
  const filteredVaccinations=vaccinations.filter(e=>(species==="all"||e.species===species)&&(region==="all"||e.village_code===region));
+ document.dispatchEvent(new CustomEvent("app:mapdata",{detail:{vaccinations:filteredVaccinations,targets:filteredTargets}}));
  const target=filteredTargets.reduce((sum,t)=>sum+Number(t.target_population||0),0);
  const vaccinated=filteredVaccinations.reduce((sum,e)=>sum+Number(e.vaccinated_count||0),0);
  const targetPairs=new Set(filteredTargets.map(t=>t.village_code+"|"+t.species));
@@ -206,7 +207,7 @@ async function sendRecord(record){
  }
  toast(record.vaccinated_count+" "+record.species.toLowerCase()+" berhasil disimpan.");
  const current=Number($("sessionVaccines").textContent)||0;$("sessionVaccines").textContent=String(current+record.vaccinated_count);
- const r=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at").eq("program_id",activeProgram.id).order("vaccinated_at",{ascending:false}).limit(1000);vaccinations=r.data||[];refreshDashboard();
+ const r=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at,latitude,longitude").eq("program_id",activeProgram.id).order("vaccinated_at",{ascending:false}).limit(1000);vaccinations=r.data||[];refreshDashboard();
 }
 async function syncQueue(){
  if(!db||!signedInUser||!navigator.onLine)return;
@@ -218,7 +219,7 @@ async function syncQueue(){
  if(status)status.innerHTML=remaining.length?'<span>◉</span><div><b>Belum tersinkron</b><small>'+remaining.length+' catatan masih menunggu.</small></div>':'<span>◉</span><div><b>Tersinkron</b><small>Antrean lokal kosong.</small></div>';
  if(queue.length>remaining.length){
    toast((queue.length-remaining.length)+" catatan berhasil disinkronkan.");
-   if(activeProgram){const refreshed=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at").eq("program_id",activeProgram.id).limit(1000);vaccinations=refreshed.data||[];refreshDashboard()}
+   if(activeProgram){const refreshed=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at,latitude,longitude").eq("program_id",activeProgram.id).limit(1000);vaccinations=refreshed.data||[];refreshDashboard()}
  }
 }
 
