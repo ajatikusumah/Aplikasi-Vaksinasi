@@ -1,4 +1,4 @@
-const CACHE_NAME = "isikhnas-vaksinasi-shell-v2";
+const CACHE_NAME = "isikhnas-vaksinasi-shell-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -37,6 +37,19 @@ self.addEventListener("fetch", event => {
       caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
       return response;
     }).catch(() => caches.match("./index.html")));
+    return;
+  }
+
+  const areaDataPath = new URL("./data/wilayah.gz.b64", self.registration.scope).pathname;
+  if (url.pathname === areaDataPath) {
+    event.respondWith(caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(request);
+      const fresh = fetch(request).then(response => {
+        if (response.ok) cache.put(request, response.clone());
+        return response;
+      });
+      return cached || fresh;
+    }));
     return;
   }
 
