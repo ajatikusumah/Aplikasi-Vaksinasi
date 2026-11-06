@@ -91,7 +91,7 @@ document.getElementById("groupBtn").addEventListener("click",function(){
 });
 document.getElementById("saveAnimalBtn").addEventListener("click",function(){
   if(window.appSessionMode==="live"){
-    window.dispatchEvent(new Event("app:save-vaccination"));
+    document.dispatchEvent(new Event("app:save-vaccination"));
     return;
   }
   const count=Math.max(1,parseInt(document.getElementById("animalCount").value,10)||1);
