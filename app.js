@@ -101,3 +101,99 @@ document.getElementById("saveAnimalBtn").addEventListener("click",function(){
   document.getElementById("saveAnimalBtn").textContent="＋ Catat individu";
 });
 document.querySelector(".full-width").addEventListener("click",function(){showToast(window.appSessionMode==="live"?"Penutupan sesi belum disambungkan; catatan per kejadian tersimpan terpisah.":"Sesi demo ditutup.")});
+
+
+const areaControls={
+  province:document.getElementById("provinceFilter"),
+  regency:document.getElementById("regencyFilter"),
+  district:document.getElementById("districtFilter"),
+  village:document.getElementById("villageFilter")
+};
+let areaRows=[
+  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"kupang",regencyName:"Kabupaten Kupang",district:"kupang-tengah",districtName:"Kupang Tengah",village:"baumata",villageName:"Baumata"},
+  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"kupang",regencyName:"Kabupaten Kupang",district:"kupang-timur",districtName:"Kupang Timur",village:"oelatimo",villageName:"Oelatimo"},
+  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"sumba-barat-daya",regencyName:"Sumba Barat Daya",district:"kodi",districtName:"Kodi",village:"watu-ulu",villageName:"Watu Ulu"},
+  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"ende",regencyName:"Kabupaten Ende",district:"ende",districtName:"Ende",village:"ende-contoh",villageName:"Contoh Desa · Ende"},
+  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"sikka",regencyName:"Kabupaten Sikka",district:"alok",districtName:"Alok",village:"maumere-contoh",villageName:"Contoh Desa · Maumere"},
+  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"belu",regencyName:"Kabupaten Belu",district:"atik",districtName:"Atik",village:"atambua-contoh",villageName:"Contoh Desa · Atambua"}
+];
+const allAreaOption={
+  province:["all","Semua provinsi"],regency:["all","Semua kabupaten/kota"],
+  district:["all","Semua kecamatan"],village:["all","Semua desa"]
+};
+function areaLabel(row,level){
+  return row[level+"Name"]||row[level]||"Belum dipetakan";
+}
+function fillAreaSelect(level,rows,disabled){
+  const select=areaControls[level];if(!select)return;
+  const prior=select.value;
+  const unique=new Map();
+  rows.forEach(row=>{
+    const value=row[level]||"unmapped";
+    if(!unique.has(value))unique.set(value,areaLabel(row,level));
+  });
+  const first=allAreaOption[level];
+  select.innerHTML='<option value="'+first[0]+'">'+first[1]+'</option>'+
+    [...unique.entries()].map(([value,label])=>'<option value="'+String(value).replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'">'+String(label).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</option>').join("");
+  select.disabled=disabled||unique.size===0;
+  if([...select.options].some(option=>option.value===prior))select.value=prior;
+}
+function selectedAreas(){
+  return {
+    province:areaControls.province?.value||"all",
+    regency:areaControls.regency?.value||"all",
+    district:areaControls.district?.value||"all",
+    village:areaControls.village?.value||"all"
+  };
+}
+function renderAreaFilters(){
+  const selected=selectedAreas();
+  const provinces=areaRows;
+  fillAreaSelect("province",provinces,false);
+  const provinceRows=selected.province==="all"?areaRows:areaRows.filter(row=>row.province===selected.province);
+  fillAreaSelect("regency",provinceRows,selected.province==="all");
+  const regencyRows=selected.regency==="all"?provinceRows:provinceRows.filter(row=>row.regency===selected.regency);
+  fillAreaSelect("district",regencyRows,selected.regency==="all");
+  const districtRows=selected.district==="all"?regencyRows:regencyRows.filter(row=>row.district===selected.district);
+  fillAreaSelect("village",districtRows,selected.district==="all");
+  const villages=selected.village==="all"?districtRows:districtRows.filter(row=>row.village===selected.village);
+  const legacy=document.getElementById("regionFilter");
+  if(legacy){
+    legacy.innerHTML='<option value="all">Semua desa</option>'+[...new Map(villages.map(row=>[row.village,row.villageName])).entries()]
+      .map(([code,name])=>'<option value="'+String(code).replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'">'+String(name).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</option>').join("");
+    legacy.value=selected.village==="all"?"all":selected.village;
+  }
+  document.dispatchEvent(new CustomEvent("app:area-change",{detail:selected}));
+  if(legacy)legacy.dispatchEvent(new Event("change"));
+}
+function setAreaTargets(targets){
+  if(!Array.isArray(targets)||!targets.length)return;
+  const unique=new Map();
+  targets.forEach(row=>{
+    const village=String(row.village_code||row.village_id||row.village_name||"");
+    if(!village)return;
+    const provinceName=row.province_name||row.province||"Belum dipetakan";
+    const regencyName=row.regency_name||row.kabupaten_name||row.regency||row.kabupaten||"Belum dipetakan";
+    const districtName=row.district_name||row.kecamatan_name||row.district||row.kecamatan||"Belum dipetakan";
+    unique.set(village,{
+      province:String(row.province_code||provinceName),provinceName:String(provinceName),
+      regency:String(row.regency_code||row.kabupaten_code||regencyName),regencyName:String(regencyName),
+      district:String(row.district_code||row.kecamatan_code||districtName),districtName:String(districtName),
+      village,villageName:String(row.village_name||village)
+    });
+  });
+  areaRows=[...unique.values()];
+  Object.values(areaControls).forEach(select=>{if(select)select.value="all"});
+  renderAreaFilters();
+}
+window.getAreaSelection=selectedAreas;
+window.setAreaTargets=setAreaTargets;
+Object.entries(areaControls).forEach(([level,select])=>{
+  if(select)select.addEventListener("change",()=>{
+    if(level==="province"){areaControls.regency.value="all";areaControls.district.value="all";areaControls.village.value="all"}
+    if(level==="regency"){areaControls.district.value="all";areaControls.village.value="all"}
+    if(level==="district")areaControls.village.value="all";
+    renderAreaFilters();
+  });
+});
+renderAreaFilters();
