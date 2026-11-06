@@ -19,8 +19,7 @@ export async function initBackend(client,user){
   document.querySelectorAll("#speciesChips button").forEach(button=>button.addEventListener("click",()=>{selectedAnimal=button.dataset.animal}));
   $("backendProgramSelect").addEventListener("change",()=>selectProgram($("backendProgramSelect").value));
   $("speciesFilter").addEventListener("change",refreshDashboard);
-  $("saveAnimalBtn").addEventListener("click",event=>{if(window.appSessionMode==="live"){event.preventDefault();event.stopImmediatePropagation();saveVaccination()}});
-  $("full-width").addEventListener?.("click",()=>{});
+  document.addEventListener("app:save-vaccination",saveVaccination);
   document.querySelector(".full-width")?.addEventListener("click",()=>{if(window.appSessionMode==="live"){toast("Sesi ditutup. Data tersinkron yang tersimpan tetap ada.")}});
   document.querySelectorAll('[data-view="program"]').forEach(button=>button.addEventListener("click",renderProgramPage));
   document.querySelectorAll('[data-view="coverage"]').forEach(button=>button.addEventListener("click",renderCoveragePage));
@@ -46,6 +45,8 @@ async function selectProgram(id){
   activeProgram=programs.find(p=>p.id===id)||null;
   if(!activeProgram)return;
   $("backendProgramSelect").value=id;
+  const activeSpecies=activeProgram.species||[];
+  $("speciesFilter").innerHTML='<option value="all">Semua spesies</option>'+activeSpecies.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
   const membership=await db.from("program_members").select("role,team_name").eq("program_id",id).eq("user_id",signedInUser.id).maybeSingle();
   activeMemberRole=membership.data?.role||null;
   const {data:targetData,error:targetError}=await db.from("village_targets").select("*").eq("program_id",id).order("village_name");
@@ -116,15 +117,16 @@ function refreshDashboard(){
  const filteredVaccinations=vaccinations.filter(e=>species==="all"||e.species===species);
  const target=filteredTargets.reduce((sum,t)=>sum+Number(t.target_population||0),0);
  const vaccinated=filteredVaccinations.reduce((sum,e)=>sum+Number(e.vaccinated_count||0),0);
- const targetVillages=new Set(filteredTargets.map(t=>t.village_code));
- const reportedVillages=new Set(filteredVaccinations.map(e=>e.village_code).filter(v=>targetVillages.has(v)));
- const completeness=targetVillages.size?Math.round(reportedVillages.size/targetVillages.size*100):null;
+ const targetPairs=new Set(filteredTargets.map(t=>t.village_code+"|"+t.species));
+ const reportedPairs=new Set(filteredVaccinations.map(e=>e.village_code+"|"+e.species).filter(v=>targetPairs.has(v)));
+ const completeness=targetPairs.size?Math.round(reportedPairs.size/targetPairs.size*100):null;
+ window.adminCoverageCurrent=coverage===null?"—":coverage+"%";
  const coverage=target?Math.min(100,Math.round(vaccinated/target*100)):null;
  $("targetValue").textContent=target.toLocaleString("id-ID");
  $("vaccinatedValue").textContent=vaccinated.toLocaleString("id-ID");
  $("coverageBar").style.width=(coverage||0)+"%";
  $("completenessValue").textContent=completeness===null?"—":completeness+"%";
- $("completenessNote").textContent=reportedVillages.size+" dari "+targetVillages.size+" desa memiliki catatan";
+ $("completenessNote").textContent=reportedPairs.size+" dari "+targetPairs.size+" desa–spesies memiliki catatan";
  $("timelinessValue").textContent="—";
  $("speciesSummary").innerHTML=(species==="all"?[...new Set(targets.map(t=>t.species))]:[species]).map(s=>{
    const tg=targets.filter(t=>t.species===s).reduce((n,t)=>n+Number(t.target_population||0),0);
@@ -145,7 +147,7 @@ function renderCoveragePage(){
  const pct=eligible?Math.round(verified/eligible*100):null;
  const form=canSurvey()?'<form id="surveyForm" class="card panel backend-form"><h2>Catat survei coverage independen</h2><p>Catatan survei tetap terpisah dari data vaksinasi program.</p><div class="form-grid"><label>Desa<select name="village_code" required>'+[...new Map(targets.map(t=>[t.village_code,t.village_name])).entries()].map(([c,n])=>'<option value="'+esc(c)+'">'+esc(n)+'</option>').join("")+'</select></label><label>Spesies<select name="species" required>'+[...new Set(targets.map(t=>t.species))].map(s=>'<option>'+esc(s)+'</option>').join("")+'</select></label><label>Tanggal survei<input type="date" name="survey_date" required></label><label>Rumah tangga sampel<input type="number" name="sampled_households" min="0" required></label><label>Hewan eligible<input type="number" name="animals_eligible" min="0" required></label><label>Hewan terverifikasi divaksin<input type="number" name="animals_verified_vaccinated" min="0" required></label><label>Metode/desain sampel<input name="method" placeholder="Contoh: cluster sampling"></label></div><div class="form-actions"><button class="button primary">Simpan hasil survei</button></div></form>':'<div class="alert-note">Input survei hanya tersedia untuk peran <b>coverage_assessor</b> atau admin nasional pada program ini.</div>';
  const rows=surveys.slice(0,20).map(s=>'<tr><td>'+esc(s.survey_date)+'</td><td>'+esc(s.village_code)+'</td><td>'+esc(s.species)+'</td><td>'+Number(s.animals_verified_vaccinated)+' / '+Number(s.animals_eligible)+'</td><td>'+esc(s.method||"—")+'</td></tr>').join("")||'<tr><td colspan="5">Belum ada hasil survei.</td></tr>';
- root.innerHTML='<div class="kpis survey-kpis"><article class="card kpi"><div class="kpi-label">Coverage administratif</div><strong>'+($("coverageAdministrativeValue")?.textContent||"—")+'</strong><small>Catatan vaksinasi dibanding target</small></article><article class="card kpi"><div class="kpi-label">Proporsi sampel terverifikasi</div><strong>'+(pct===null?"—":pct+"%")+'</strong><small>'+verified+" dari "+eligible+' hewan; belum berbobot desain</small></article><article class="card kpi"><div class="kpi-label">Survei tercatat</div><strong>'+surveys.length+'</strong><small>Baris survei independen</small></article><article class="card kpi"><div class="kpi-label">Cakupan sampel</div><strong>'+eligible.toLocaleString("id-ID")+'</strong><small>Hewan eligible diperiksa</small></article></div>'+form+'<article class="card panel"><div class="panel-head"><div><h2>Catatan survei terbaru</h2><p>Disimpan terpisah dari tim vaksinasi</p></div></div><div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kode desa</th><th>Spesies</th><th>Terverifikasi / eligible</th><th>Metode</th></tr></thead><tbody>'+rows+'</tbody></table></div></article>';
+ root.innerHTML='<div class="kpis survey-kpis"><article class="card kpi"><div class="kpi-label">Coverage administratif</div><strong>'+(window.adminCoverageCurrent||"—")+'</strong><small>Catatan vaksinasi dibanding target</small></article><article class="card kpi"><div class="kpi-label">Proporsi sampel terverifikasi</div><strong>'+(pct===null?"—":pct+"%")+'</strong><small>'+verified+" dari "+eligible+' hewan; belum berbobot desain</small></article><article class="card kpi"><div class="kpi-label">Survei tercatat</div><strong>'+surveys.length+'</strong><small>Baris survei independen</small></article><article class="card kpi"><div class="kpi-label">Cakupan sampel</div><strong>'+eligible.toLocaleString("id-ID")+'</strong><small>Hewan eligible diperiksa</small></article></div>'+form+'<article class="card panel"><div class="panel-head"><div><h2>Catatan survei terbaru</h2><p>Disimpan terpisah dari tim vaksinasi</p></div></div><div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kode desa</th><th>Spesies</th><th>Terverifikasi / eligible</th><th>Metode</th></tr></thead><tbody>'+rows+'</tbody></table></div></article>';
  $("surveyForm")?.addEventListener("submit",saveSurvey);
 }
 
@@ -194,5 +196,8 @@ async function syncQueue(){
  for(const record of queue){const {error}=await db.from("vaccination_events").upsert(record,{onConflict:"client_event_id"});if(error)remaining.push(record)}
  localStorage.setItem(key,JSON.stringify(remaining));
  if(status)status.innerHTML=remaining.length?'<span>◉</span><div><b>Belum tersinkron</b><small>'+remaining.length+' catatan masih menunggu.</small></div>':'<span>◉</span><div><b>Tersinkron</b><small>Antrean lokal kosong.</small></div>';
- if(queue.length>remaining.length)toast((queue.length-remaining.length)+" catatan berhasil disinkronkan.");
+ if(queue.length>remaining.length){
+   toast((queue.length-remaining.length)+" catatan berhasil disinkronkan.");
+   if(activeProgram){const refreshed=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at").eq("program_id",activeProgram.id).limit(1000);vaccinations=refreshed.data||[];refreshDashboard()}
+ }
 }
