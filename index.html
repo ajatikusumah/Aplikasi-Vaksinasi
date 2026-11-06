@@ -76,6 +76,7 @@
           <p>RABIES-NTT-2026-001 <span>·</span> 1 Okt – 30 Nov 2026 <span>·</span> 6 kabupaten</p></div>
           <button class="button primary" id="newRecordBtn">＋ Catat kegiatan</button>
         </div>
+        <div id="backendProgramControl" class="filters"></div>
         <div class="filters">
           <label>Spesies<select id="speciesFilter"><option value="all">Semua spesies</option><option value="Anjing">Anjing</option><option value="Sapi">Sapi</option><option value="Kambing">Kambing</option><option value="Kucing">Kucing</option></select></label>
           <label>Wilayah<select><option>Semua kabupaten</option><option>Sumba Barat Daya</option><option>Kupang</option><option>Sumba Timur</option></select></label>
@@ -84,15 +85,15 @@
         </div>
 
         <div class="kpis">
-          <article class="card kpi"><div class="kpi-label">Populasi sasaran <span class="kpi-icon mint">♧</span></div><strong id="targetValue">12.450</strong><small>Estimasi per desa & spesies</small></article>
-          <article class="card kpi"><div class="kpi-label">Sudah divaksinasi <span class="kpi-icon blue">✚</span></div><strong id="vaccinatedValue">8.740</strong><small><b>+684</b> minggu ini</small><div class="bar"><i id="coverageBar" style="width:70.2%"></i></div></article>
-          <article class="card kpi"><div class="kpi-label">Completeness <span class="kpi-icon amber">▤</span></div><strong>88%</strong><small>42 dari 48 desa melapor</small><div class="bar"><i class="bar-blue" style="width:88%"></i></div></article>
-          <article class="card kpi"><div class="kpi-label">Timeliness <span class="kpi-icon lilac">◷</span></div><strong>92%</strong><small>Pelaksanaan sesuai jadwal</small><div class="bar"><i class="bar-amber" style="width:92%"></i></div></article>
+          <article class="card kpi"><div class="kpi-label">Populasi sasaran <span class="kpi-icon mint">♧</span></div><strong id="targetValue">—</strong><small>Estimasi per desa & spesies</small></article>
+          <article class="card kpi"><div class="kpi-label">Sudah divaksinasi <span class="kpi-icon blue">✚</span></div><strong id="vaccinatedValue">—</strong><small>Data tersimpan di server</small><div class="bar"><i id="coverageBar" style="width:70.2%"></i></div></article>
+          <article class="card kpi"><div class="kpi-label">Completeness <span class="kpi-icon amber">▤</span></div><strong id="completenessValue">—</strong><small id="completenessNote">Menunggu data program</small><div class="bar"><i class="bar-blue" style="width:88%"></i></div></article>
+          <article class="card kpi"><div class="kpi-label">Timeliness <span class="kpi-icon lilac">◷</span></div><strong id="timelinessValue">—</strong><small>Butuh jadwal kegiatan per desa</small><div class="bar"><i class="bar-amber" style="width:92%"></i></div></article>
         </div>
 
         <div class="grid-two">
           <article class="card panel map-panel">
-            <div class="panel-head"><div><h2>Cakupan vaksinasi per desa</h2><p>Warna menunjukkan coverage administratif</p></div><button class="text-link" data-open-view="coverage">Lihat verifikasi ↗</button></div>
+            <div class="panel-head"><div><h2>Cakupan vaksinasi per desa</h2><p id="mapDataNotice">Visual ilustratif; data spasial aktual menyusul</p></div><button class="text-link" data-open-view="coverage">Lihat verifikasi ↗</button></div>
             <div class="map-wrap">
               <svg class="map" viewBox="0 0 680 260" role="img" aria-label="Peta ilustratif desa sasaran di Nusa Tenggara Timur">
                 <rect width="680" height="260" rx="12" fill="#edf4ef"/>
@@ -137,44 +138,21 @@
       <section id="coverageView" class="hidden">
         <div class="page-heading">
           <div><div class="tag survey-tag"><i></i> TIM SURVEI INDEPENDEN</div><h1>Verifikasi Coverage</h1>
-          <p>Vaksinasi Rabies NTT <span>·</span> RABIES-NTT-2026-001</p></div>
-          <button class="button">＋ Buat penugasan survei</button>
+          <p id="coverageProgramLabel">Pilih program untuk melihat hasil survei</p></div>
         </div>
-        <div class="alert-note"><b>Survei terpisah dari tim vaksinasi.</b> Hasil survei mengestimasi coverage secara independen dan dilaporkan terpisah dari cakupan administratif.</div>
-        <div class="kpis survey-kpis">
-          <article class="card kpi"><div class="kpi-label">Coverage administratif <span class="kpi-icon mint">▤</span></div><strong>70,2%</strong><small>Catatan kegiatan vaksinasi</small></article>
-          <article class="card kpi"><div class="kpi-label">Coverage hasil survei <span class="kpi-icon amber">⌖</span></div><strong>64,8%</strong><small>Estimasi survei independen</small></article>
-          <article class="card kpi"><div class="kpi-label">Klaster selesai <span class="kpi-icon blue">✓</span></div><strong>38 <em>/ 40</em></strong><small>Survei 12–16 Nov 2026</small></article>
-          <article class="card kpi"><div class="kpi-label">Hewan diperiksa <span class="kpi-icon lilac">♧</span></div><strong>486</strong><small>Anjing · desain klaster</small></article>
-        </div>
-        <div class="grid-two">
-          <article class="card panel">
-            <div class="panel-head"><div><h2>Progres sampel per desa</h2><p>Desa terpilih pada desain survei</p></div><span class="mini-badge">38/40 klaster</span></div>
-            <div class="survey-progress"><div><span>Rumah tangga selesai</span><b>486 / 520</b></div><div class="bar"><i style="width:93%"></i></div></div>
-            <div class="table-wrap"><table><thead><tr><th>Klaster / desa</th><th>Target sampel</th><th>Diperiksa</th><th>Coverage survei</th><th>Status</th></tr></thead><tbody>
-              <tr><td><b>Watu Ulu</b><small>Klaster 04</small></td><td>35</td><td>35</td><td><b>65%</b></td><td><span class="status synced">Selesai</span></td></tr>
-              <tr><td><b>Oelatimo</b><small>Klaster 08</small></td><td>30</td><td>30</td><td><b>59%</b></td><td><span class="status synced">Selesai</span></td></tr>
-              <tr><td><b>Baumata</b><small>Klaster 12</small></td><td>30</td><td>0</td><td><b class="gray-text">—</b></td><td><span class="status none">Belum disurvei</span></td></tr>
-            </tbody></table></div>
-          </article>
-          <article class="card panel">
-            <div class="panel-head"><div><h2>Tim survei</h2><p>Berbeda dari tim pelaksana vaksinasi</p></div><button class="text-link">Lihat penugasan</button></div>
-            <div class="survey-team-card"><div class="team-avatar teal-bg">SV</div><div><b>Tim Survei Sumba Barat Daya</b><small>4 petugas · 12 klaster ditugaskan</small></div><span class="status synced">Aktif</span></div>
-            <div class="survey-team-card"><div class="team-avatar blue-bg">SV</div><div><b>Tim Survei Kupang</b><small>3 petugas · 10 klaster ditugaskan</small></div><span class="status mid">8/10 selesai</span></div>
-            <div class="method-card"><b>Informasi metodologi</b><p>Desain, kerangka sampel, definisi status vaksinasi, dan periode survei harus dicantumkan agar hasil dapat ditafsirkan dengan benar.</p><button class="text-link">Lihat detail metodologi ↗</button></div>
-          </article>
-        </div>
+        <div class="alert-note"><b>Survei terpisah dari tim vaksinasi.</b> Coverage administratif dan hasil survei ditampilkan terpisah. Hasil survei perlu interpretasi sesuai desain sampel dan pembobotan.</div>
+        <div id="coverageBackend"></div>
       </section>
 
       <section id="genericView" class="hidden">
         <div class="page-heading"><div><div class="tag"><i></i> PROTOTIPE</div><h1 id="genericTitle">Program</h1><p>Contoh tampilan awal modul iSIKHNAS Vaksinasi.</p></div></div>
-        <article class="card panel"><div class="empty-state"><div class="empty-icon">✳</div><h2 id="genericHeading">Modul ini disiapkan pada tahap berikutnya</h2><p>Untuk tahap awal, kita sedang menyusun fondasi frontend, alur program, dan pengalaman pencatatan lapangan.</p><button class="button primary" data-open-view="dashboard">Kembali ke dashboard</button></div></article>
+        <div id="programBackend"></div>
       </section>
 
       <section id="fieldView" class="hidden field-view">
         <div class="field-header"><div><span class="tag"><i></i> MODE PETUGAS</span><h1>Tugas lapangan</h1><p>Selamat pagi, Andi</p></div><button class="button" id="coordinatorModeBtn">Tampilan koordinator</button></div>
-        <article class="field-program"><small>PROGRAM AKTIF · RABIES-NTT-2026-001</small><h2>Vaksinasi Rabies NTT</h2><div class="field-program-meta"><span>Sumba Barat Daya</span><span>Desa Watu Ulu</span></div></article>
-        <div class="offline-banner"><span>◉</span><div><b>Mode offline</b><small>Catatan tersimpan di perangkat dan menunggu sinkronisasi.</small></div></div>
+        <article class="field-program"><small id="fieldProgramCode">PROGRAM AKTIF · PILIH PROGRAM</small><h2 id="fieldProgramName">Belum ada program</h2><div class="field-program-meta"><span id="fieldProgramDate">—</span><span id="fieldVillageLabel">Pilih desa sasaran di formulir</span></div></article>
+        <div class="offline-banner" id="offlineStatus"><span>◉</span><div><b>Status data</b><small>Catatan hanya tersimpan setelah berhasil disinkronkan.</small></div></div>
         <div class="section-title"><h2>Sesi vaksinasi</h2><button class="text-link">Session log ↗</button></div>
         <div class="session-grid">
           <div class="card session-stat"><b>00:48</b><small>Durasi sesi</small></div><div class="card session-stat"><b>2,4 km</b><small>Jarak sesi</small></div><div class="card session-stat"><b id="sessionVaccines">28</b><small>Vaksinasi sesi</small></div>
@@ -189,7 +167,7 @@
             <div class="field-row"><label>Jenis kelamin<select><option>Betina</option><option>Jantan</option><option>Tidak diketahui</option></select></label><label id="sterileWrap">Status steril<select><option>Utuh</option><option>Steril</option><option>Tidak diketahui</option></select></label><label id="tagWrap" class="hidden">Nomor identitas<input placeholder="Nomor ear tag"></label></div>
           </div>
           <div class="field-row vaccine-row"><label>Jenis vaksin<select><option>Vaksin rabies inaktif</option></select></label><label>Batch<input value="RB-26-041" aria-label="Batch vaksin"></label></div>
-          <div class="field-row"><label>Jumlah hewan<input id="animalCount" type="number" min="1" value="1"></label><label>Zona kerja<select><option>WZ5 · Watu Ulu</option><option>WZ6 · Waimangura</option></select></label></div>
+          <div class="field-row"><label>Jumlah hewan<input id="animalCount" type="number" min="1" value="1"></label><label>Zona kerja<select id="fieldVillageSelect"><option value="">Pilih desa target</option></select></label></div>
           <div class="form-actions"><button class="button outline" id="groupBtn">▧ Catat kelompok</button><button class="button primary" id="saveAnimalBtn">＋ Catat individu</button></div>
         </article>
         <button class="button primary full-width">Selesaikan sesi</button>
