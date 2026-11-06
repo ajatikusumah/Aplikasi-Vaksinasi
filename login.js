@@ -78,6 +78,7 @@ form.addEventListener("submit",async(event)=>{
     return;
   }
   showApp("live",data.user);
+  try{const {initBackend}=await import("./backend.js");await initBackend(supabaseClient,data.user)}catch(error){const toast=document.getElementById("toast");toast.textContent="Login berhasil, tetapi data backend gagal dimuat.";toast.classList.add("show")}
 });
 demoButton.addEventListener("click",()=>showApp("demo",{email:"demo@isikhnas.local"}));
 configureAuth();
