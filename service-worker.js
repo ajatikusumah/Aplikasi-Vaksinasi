@@ -1,4 +1,4 @@
-const CACHE_NAME = "isikhnas-vaksinasi-shell-v1";
+const CACHE_NAME = "isikhnas-vaksinasi-shell-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
