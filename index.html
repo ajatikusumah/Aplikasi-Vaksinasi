@@ -79,7 +79,7 @@
         <div id="backendProgramControl" class="filters"></div>
         <div class="filters">
           <label>Spesies<select id="speciesFilter"><option value="all">Semua spesies</option><option value="Anjing">Anjing</option><option value="Sapi">Sapi</option><option value="Kambing">Kambing</option><option value="Kucing">Kucing</option></select></label>
-          <label>Wilayah<select><option>Semua kabupaten</option><option>Sumba Barat Daya</option><option>Kupang</option><option>Sumba Timur</option></select></label>
+          <label>Wilayah<select id="regionFilter"><option value="all">Semua desa</option></select></label>
           <label>Periode<select><option>1 Okt – 30 Nov 2026</option><option>Bulan ini</option><option>Minggu ini</option></select></label>
           <span class="updated">● Diperbarui 4 menit lalu</span>
         </div>
@@ -122,15 +122,13 @@
           <article class="card panel">
             <div class="panel-head"><div><h2>Desa yang perlu perhatian</h2><p>Coverage rendah atau belum ada laporan</p></div><button class="text-link">Lihat semua</button></div>
             <div class="table-wrap"><table><thead><tr><th>Desa</th><th>Spesies</th><th>Target</th><th>Coverage</th><th>Status</th></tr></thead>
-            <tbody><tr><td><b>Watu Ulu</b><small>Sumba Barat Daya</small></td><td>Anjing</td><td>420</td><td><b class="red-text">28%</b></td><td><span class="status low">Perlu tindak lanjut</span></td></tr>
+            <tbody id="attentionRows"><tr><td><b>Watu Ulu</b><small>Sumba Barat Daya</small></td><td>Anjing</td><td>420</td><td><b class="red-text">28%</b></td><td><span class="status low">Perlu tindak lanjut</span></td></tr>
             <tr><td><b>Oelatimo</b><small>Kupang</small></td><td>Anjing</td><td>310</td><td><b class="amber-text">51%</b></td><td><span class="status mid">Berjalan</span></td></tr>
             <tr><td><b>Baumata</b><small>Kupang</small></td><td>Sapi</td><td>185</td><td><b class="gray-text">—</b></td><td><span class="status none">Belum melapor</span></td></tr></tbody></table></div>
           </article>
           <article class="card panel">
             <div class="panel-head"><div><h2>Aktivitas tim</h2><p>Pembaruan kegiatan terbaru</p></div><button class="text-link">Semua tim</button></div>
-            <div class="activity"><span class="team-avatar">T1</span><div><b>Tim Sumba 01</b><small>Watu Ulu · 86 anjing</small></div><span class="status synced">Tersinkron</span></div>
-            <div class="activity"><span class="team-avatar blue-bg">T3</span><div><b>Tim Kupang 03</b><small>Oelatimo · 54 anjing</small></div><span class="status synced">Tersinkron</span></div>
-            <div class="activity"><span class="team-avatar amber-bg">T2</span><div><b>Tim Sumba 02</b><small>Mbatakapidu · 72 anjing</small></div><span class="status mid">Perlu ditinjau</span></div>
+            <div id="activityBackend"></div>
           </article>
         </div>
       </section>
