@@ -3,6 +3,7 @@ const form=document.getElementById("loginForm");
 const message=document.getElementById("loginMessage");
 const submit=document.getElementById("loginSubmit");
 const demoButton=document.getElementById("demoLogin");
+const forgotPasswordButton=document.getElementById("forgotPasswordBtn");
 let supabaseClient=null;
 let sessionMode="demo";
 const incomingAuthParams=new URLSearchParams(window.location.hash.slice(1));
@@ -125,6 +126,19 @@ form.addEventListener("submit",async(event)=>{
     return;
   }
   await openLiveSession(data.user);
+});
+forgotPasswordButton?.addEventListener("click",async()=>{
+  const email=document.getElementById("loginEmail").value.trim();
+  if(!supabaseClient){message.textContent="Pemulihan kata sandi belum terhubung.";return}
+  if(!email){message.textContent="Masukkan email Anda terlebih dahulu.";document.getElementById("loginEmail").focus();return}
+  forgotPasswordButton.disabled=true;
+  message.textContent="Mengirim tautan pemulihan…";
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+  message.textContent=error
+    ?"Tautan pemulihan gagal dikirim. Periksa konfigurasi URL Supabase."
+    :"Jika akun terdaftar, tautan pemulihan telah dikirim ke email tersebut.";
+  forgotPasswordButton.disabled=false;
 });
 demoButton.addEventListener("click",()=>showApp("demo",{email:"demo@isikhnas.local"}));
 configureAuth();
