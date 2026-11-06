@@ -103,41 +103,30 @@ document.getElementById("saveAnimalBtn").addEventListener("click",function(){
 document.querySelector(".full-width").addEventListener("click",function(){showToast(window.appSessionMode==="live"?"Penutupan sesi belum disambungkan; catatan per kejadian tersimpan terpisah.":"Sesi demo ditutup.")});
 
 
+
 const areaControls={
   province:document.getElementById("provinceFilter"),
   regency:document.getElementById("regencyFilter"),
   district:document.getElementById("districtFilter"),
   village:document.getElementById("villageFilter")
 };
-let areaRows=[
-  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"kupang",regencyName:"Kabupaten Kupang",district:"kupang-tengah",districtName:"Kupang Tengah",village:"baumata",villageName:"Baumata"},
-  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"kupang",regencyName:"Kabupaten Kupang",district:"kupang-timur",districtName:"Kupang Timur",village:"oelatimo",villageName:"Oelatimo"},
-  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"sumba-barat-daya",regencyName:"Sumba Barat Daya",district:"kodi",districtName:"Kodi",village:"watu-ulu",villageName:"Watu Ulu"},
-  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"ende",regencyName:"Kabupaten Ende",district:"ende",districtName:"Ende",village:"ende-contoh",villageName:"Contoh Desa · Ende"},
-  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"sikka",regencyName:"Kabupaten Sikka",district:"alok",districtName:"Alok",village:"maumere-contoh",villageName:"Contoh Desa · Maumere"},
-  {province:"NTT",provinceName:"Nusa Tenggara Timur",regency:"belu",regencyName:"Kabupaten Belu",district:"atik",districtName:"Atik",village:"atambua-contoh",villageName:"Contoh Desa · Atambua"}
+const allAreaOption={province:"Semua provinsi",regency:"Semua kabupaten/kota",district:"Semua kecamatan",village:"Semua desa/kelurahan"};
+let areaTree=[
+  ["demo-ntt","Nusa Tenggara Timur",[
+    ["demo-kupang","Kabupaten Kupang",[
+      ["demo-kupang-tengah","Kupang Tengah",[["demo-baumata","Baumata","Desa"]]],
+      ["demo-kupang-timur","Kupang Timur",[["demo-oelatimo","Oelatimo","Desa"]]]
+    ]],
+    ["demo-sumba-barat-daya","Kabupaten Sumba Barat Daya",[
+      ["demo-kodi","Kodi",[["demo-watu-ulu","Watu Ulu","Desa"]]]
+    ]],
+    ["demo-ende","Kabupaten Ende",[["demo-ende-kota","Ende",[["demo-ende-village","Contoh Desa · Ende","Desa"]]]]],
+    ["demo-sikka","Kabupaten Sikka",[["demo-alok","Alok",[["demo-maumere-village","Contoh Desa · Maumere","Kelurahan"]]]]],
+    ["demo-belu","Kabupaten Belu",[["demo-atik","Atik",[["demo-atambua-village","Contoh Desa · Atambua","Desa"]]]]]
+  ]]
 ];
-const allAreaOption={
-  province:["all","Semua provinsi"],regency:["all","Semua kabupaten/kota"],
-  district:["all","Semua kecamatan"],village:["all","Semua desa"]
-};
-function areaLabel(row,level){
-  return row[level+"Name"]||row[level]||"Belum dipetakan";
-}
-function fillAreaSelect(level,rows,disabled){
-  const select=areaControls[level];if(!select)return;
-  const prior=select.value;
-  const unique=new Map();
-  rows.forEach(row=>{
-    const value=row[level]||"unmapped";
-    if(!unique.has(value))unique.set(value,areaLabel(row,level));
-  });
-  const first=allAreaOption[level];
-  select.innerHTML='<option value="'+first[0]+'">'+first[1]+'</option>'+
-    [...unique.entries()].map(([value,label])=>'<option value="'+String(value).replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'">'+String(label).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</option>').join("");
-  select.disabled=disabled||unique.size===0;
-  if([...select.options].some(option=>option.value===prior))select.value=prior;
-}
+const areaChildren={province:2,regency:2,district:2};
+const escapeArea=value=>String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 function selectedAreas(){
   return {
     province:areaControls.province?.value||"all",
@@ -146,53 +135,55 @@ function selectedAreas(){
     village:areaControls.village?.value||"all"
   };
 }
+function fillAreaSelect(level,nodes,disabled,selected){
+  const select=areaControls[level];if(!select)return;
+  const optionName=allAreaOption[level];
+  const labels=nodes.map(node=>{
+    let label=node[1];
+    if(level==="village"&&node[2])label+=" ("+node[2].toLowerCase()+")";
+    return '<option value="'+escapeArea(node[0])+'">'+escapeArea(label)+'</option>';
+  }).join("");
+  select.innerHTML='<option value="all">'+optionName+'</option>'+labels;
+  select.disabled=disabled||nodes.length===0;
+  if([...select.options].some(option=>option.value===selected))select.value=selected;
+}
 function renderAreaFilters(){
   const selected=selectedAreas();
-  const provinces=areaRows;
-  fillAreaSelect("province",provinces,false);
-  const provinceRows=selected.province==="all"?areaRows:areaRows.filter(row=>row.province===selected.province);
-  fillAreaSelect("regency",provinceRows,selected.province==="all");
-  const regencyRows=selected.regency==="all"?provinceRows:provinceRows.filter(row=>row.regency===selected.regency);
-  fillAreaSelect("district",regencyRows,selected.regency==="all");
-  const districtRows=selected.district==="all"?regencyRows:regencyRows.filter(row=>row.district===selected.district);
-  fillAreaSelect("village",districtRows,selected.district==="all");
-  const villages=selected.village==="all"?districtRows:districtRows.filter(row=>row.village===selected.village);
-  const legacy=document.getElementById("regionFilter");
-  if(legacy){
-    legacy.innerHTML='<option value="all">Semua desa</option>'+[...new Map(villages.map(row=>[row.village,row.villageName])).entries()]
-      .map(([code,name])=>'<option value="'+String(code).replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'">'+String(name).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</option>').join("");
-    legacy.value=selected.village==="all"?"all":selected.village;
-  }
-  document.dispatchEvent(new CustomEvent("app:area-change",{detail:selected}));
-  if(legacy)legacy.dispatchEvent(new Event("change"));
+  fillAreaSelect("province",areaTree,false,selected.province);
+  const province=areaTree.find(node=>node[0]===selected.province);
+  const regencies=province?province[2]:[];
+  fillAreaSelect("regency",regencies,selected.province==="all",selected.regency);
+  const regency=regencies.find(node=>node[0]===selected.regency);
+  const districts=regency?regency[2]:[];
+  fillAreaSelect("district",districts,selected.regency==="all",selected.district);
+  const district=districts.find(node=>node[0]===selected.district);
+  const villages=district?district[2]:[];
+  fillAreaSelect("village",villages,selected.district==="all",selected.village);
+  document.dispatchEvent(new CustomEvent("app:area-change",{detail:selectedAreas()}));
 }
-function setAreaTargets(targets){
-  const unique=new Map();
-  targets.forEach(row=>{
-    const village=String(row.village_code||row.village_id||row.village_name||"");
-    if(!village)return;
-    const provinceName=row.province_name||row.province||"Belum dipetakan";
-    const regencyName=row.regency_name||row.kabupaten_name||row.regency||row.kabupaten||"Belum dipetakan";
-    const districtName=row.district_name||row.kecamatan_name||row.district||row.kecamatan||"Belum dipetakan";
-    unique.set(village,{
-      province:String(row.province_code||provinceName),provinceName:String(provinceName),
-      regency:String(row.regency_code||row.kabupaten_code||regencyName),regencyName:String(regencyName),
-      district:String(row.district_code||row.kecamatan_code||districtName),districtName:String(districtName),
-      village,villageName:String(row.village_name||village)
-    });
-  });
-  areaRows=[...unique.values()];
-  Object.values(areaControls).forEach(select=>{if(select)select.value="all"});
-  renderAreaFilters();
+function resetAreaChildren(level){
+  if(level==="province"){areaControls.regency.value="all";areaControls.district.value="all";areaControls.village.value="all"}
+  if(level==="regency"){areaControls.district.value="all";areaControls.village.value="all"}
+  if(level==="district")areaControls.village.value="all";
 }
-window.getAreaSelection=selectedAreas;
-window.setAreaTargets=setAreaTargets;
 Object.entries(areaControls).forEach(([level,select])=>{
-  if(select)select.addEventListener("change",()=>{
-    if(level==="province"){areaControls.regency.value="all";areaControls.district.value="all";areaControls.village.value="all"}
-    if(level==="regency"){areaControls.district.value="all";areaControls.village.value="all"}
-    if(level==="district")areaControls.village.value="all";
-    renderAreaFilters();
-  });
+  if(select)select.addEventListener("change",()=>{resetAreaChildren(level);renderAreaFilters()});
 });
+window.getAreaSelection=selectedAreas;
 renderAreaFilters();
+async function loadOfficialAreaData(){
+  try{
+    const response=await fetch("./data/wilayah.gz.b64");
+    if(!response.ok)throw new Error("Daftar wilayah tidak tersedia");
+    const encoded=(await response.text()).trim();
+    const binary=atob(encoded);
+    const bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    const data=await new Response(stream).json();
+    if(Array.isArray(data.p)&&data.p.length){areaTree=data.p;renderAreaFilters()}
+  }catch(error){
+    console.warn("Data wilayah resmi belum dapat dimuat; pilihan contoh tetap tersedia.",error);
+  }
+}
+loadOfficialAreaData();
