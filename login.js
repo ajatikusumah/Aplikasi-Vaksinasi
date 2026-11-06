@@ -8,6 +8,7 @@ let sessionMode="demo";
 
 function showApp(mode, user){
   sessionMode=mode;
+  window.appSessionMode=mode;
   document.body.classList.add("authenticated");
   screen.hidden=true;
   const actions=document.querySelector(".top-actions");
@@ -30,7 +31,11 @@ function showApp(mode, user){
     const status=document.querySelector(".sidebar-footer");
     if(status) status.innerHTML=mode==="demo"
       ?'<span class="online-dot"></span> Mode demo · data ilustratif'
-      :'<span class="online-dot"></span> Terhubung · '+(user?.email||"akun aktif");
+      :'<span class="online-dot"></span> Login aktif · angka dashboard masih demo';
+    const sync=document.querySelector(".sync-status");
+    if(sync) sync.innerHTML=mode==="demo"
+      ?'<i></i> Demo · tanpa sinkronisasi'
+      :'<i></i> Login aktif · data demo';
     const avatar=document.querySelector(".avatar");
     if(avatar) avatar.textContent=(user?.email||"DE").slice(0,2).toUpperCase();
   }
