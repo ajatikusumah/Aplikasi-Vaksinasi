@@ -41,6 +41,18 @@ create table public.program_members (
   created_at timestamptz not null default now(),
   primary key(program_id,user_id)
 );
+create or replace function public.add_program_creator_as_member()
+returns trigger language plpgsql security definer set search_path=public
+as $ begin
+  insert into public.program_members(program_id,user_id,role,team_name)
+  values(new.id,new.created_by,'program_coordinator','Koordinator')
+  on conflict(program_id,user_id) do nothing;
+  return new;
+end; $;
+create trigger add_program_creator_to_members
+after insert on public.programs
+for each row execute function public.add_program_creator_as_member();
+
 create table public.village_targets (
   id uuid primary key default gen_random_uuid(),
   program_id uuid not null references public.programs(id) on delete cascade,
@@ -158,6 +170,7 @@ alter table public.logistics_items enable row level security;
 alter table public.inventory_transactions enable row level security;
 
 create policy profile_read_self_or_admin on public.user_profiles for select using(user_id=auth.uid() or public.has_global_role(array['national_admin']::public.app_role[]));
+create policy profile_insert_self_or_admin on public.user_profiles for insert with check(user_id=auth.uid() or public.has_global_role(array['national_admin']::public.app_role[]));
 create policy profile_update_self_or_admin on public.user_profiles for update using(user_id=auth.uid() or public.has_global_role(array['national_admin']::public.app_role[])) with check(user_id=auth.uid() or public.has_global_role(array['national_admin']::public.app_role[]));
 create policy roles_read_self_or_admin on public.user_roles for select using(user_id=auth.uid() or public.has_global_role(array['national_admin']::public.app_role[]));
 create policy roles_admin_manage on public.user_roles for all using(public.has_global_role(array['national_admin']::public.app_role[])) with check(public.has_global_role(array['national_admin']::public.app_role[]));
