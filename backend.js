@@ -141,9 +141,11 @@ function refreshDashboard(){
    }[level];
    const value=area[level]||"all";if(value==="all")return true;
    if([...aliases.code,...aliases.name].some(key=>String(row[key]??"")===String(value)))return true;
-   const villageCode=String(row.village_code||row.village_id||"");
-   if(level==="village")return villageCode===String(value);
-   return villageCode.startsWith(String(value)+".");
+   const normalizeCode=code=>String(code).replace(/[.\\s]/g,"");
+   const villageCode=normalizeCode(row.village_code||row.village_id||"");
+   const selectedCode=normalizeCode(value);
+   if(level==="village")return villageCode===selectedCode;
+   return villageCode.startsWith(selectedCode);
  };
  const inArea=row=>{
    const target=targets.find(t=>String(t.village_code)===String(row.village_code));
