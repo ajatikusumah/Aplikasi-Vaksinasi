@@ -37,7 +37,7 @@ function openView(name){
   document.getElementById("crumbTitle").textContent=views[name].title;
   if(views[name].node==="genericView"){
     document.getElementById("genericTitle").textContent=views[name].title;
-    document.getElementById("genericHeading").textContent=views[name].heading;
+    if(document.getElementById("genericHeading"))document.getElementById("genericHeading").textContent=views[name].heading;
   }
   document.querySelectorAll("[data-view]").forEach(function(button){
     button.classList.toggle("active",button.dataset.view===name);
