@@ -4,10 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#103a43">
-  <title>iSIKHNAS Vaksinasi — Prototype</title>
+  <title>iSIKHNAS Vaksinasi</title>
+  <link rel="stylesheet" href="login.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand"><div class="brand-icon">✳</div><div><strong>iSIKHNAS</strong><span>VAKSINASI</span></div></div>
+    <div class="login-kicker">MONITORING VAKSINASI HEWAN</div>
+    <h1>Selamat datang</h1>
+    <p class="login-intro">Masuk untuk melanjutkan ke ruang kerja program vaksinasi.</p>
+    <form id="loginForm">
+      <label for="loginEmail">Email pengguna</label>
+      <input id="loginEmail" type="email" autocomplete="username" placeholder="nama@instansi.go.id" required>
+      <label for="loginPassword">Kata sandi</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi" required>
+      <p id="loginMessage" class="login-message" role="status">Backend autentikasi belum diaktifkan.</p>
+      <button class="login-submit" id="loginSubmit" type="submit">Masuk ke aplikasi <span>→</span></button>
+    </form>
+    <div class="login-divider"><span>atau</span></div>
+    <button class="demo-submit" id="demoLogin" type="button">Lihat mockup dengan akun demo</button>
+    <div class="login-foot"><span class="secure-dot"></span> Akses berbasis peran · data contoh untuk demonstrasi</div>
+  </div>
+  <div class="login-side">
+    <div class="side-orb orb-one"></div><div class="side-orb orb-two"></div>
+    <div class="login-side-content">
+      <div class="login-chip">✦ &nbsp; ONE HEALTH · DATA LAPANGAN</div>
+      <h2>Dari desa,<br>untuk perlindungan<br>hewan yang lebih baik.</h2>
+      <p>Catat vaksinasi, pantau capaian per spesies, dan temukan wilayah yang masih perlu dijangkau.</p>
+      <div class="login-stats"><div><b>Multi-spesies</b><span>Anjing · Sapi · Kambing</span></div><div><b>Siap lapangan</b><span>Dapat dikembangkan untuk sinkronisasi</span></div></div>
+      <div class="login-side-brand">iSIKHNAS <span>VAKSINASI</span></div>
+    </div>
+  </div>
+</div>
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><div class="brand-icon">✳</div><div><strong>iSIKHNAS</strong><span>VAKSINASI</span></div></div>
@@ -170,5 +200,6 @@
 <nav class="mobile-nav" aria-label="Navigasi smartphone"><button class="active" data-view="dashboard"><span>⌂</span>Beranda</button><button data-view="program"><span>▦</span>Program</button><button id="mobileRecord"><span>＋</span>Catat</button><button data-view="coverage"><span>⌖</span>Coverage</button></nav>
 <div class="toast" id="toast" role="status"></div>
 <script src="app.js"></script>
+<script type="module" src="login.js"></script>
 </body>
 </html>
