@@ -114,7 +114,7 @@ async function createProgram(event){
  $("backendProgramSelect").innerHTML=programOptionHtml();await selectProgram(programs[0].id);document.querySelector("[data-view=program]")?.click();
 }
 async function createTarget(event){
- event.preventDefault();const data=new FormData(event.currentTarget);const {error}=await db.from("village_targets").upsert({program_id:activeProgram.id,village_code:String(data.get("village_code")).trim(),village_name:String(data.get("village_name")).trim(),species:data.get("species"),target_population:Number(data.get("target_population"))},{onConflict:"program_id,village_code,species"});
+ event.preventDefault();const data=new FormData(event.currentTarget);const {error}=await db.from("village_targets").upsert({program_id:activeProgram.id,village_code:String(data.get("village_code")).trim(),village_name:String(data.get("village_name")).trim(),species:data.get("species"),target_population:Number(data.get("target_population")),updated_by:signedInUser.id},{onConflict:"program_id,village_code,species"});
  if(error){toast("Target gagal disimpan: "+error.message);return}toast("Target desa tersimpan.");await selectProgram(activeProgram.id);
 }
 
