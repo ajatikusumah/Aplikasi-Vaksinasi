@@ -46,6 +46,7 @@ function showApp(mode, user){
     if(avatar) avatar.textContent=(user?.email||"DE").slice(0,2).toUpperCase();
   }
   document.body.classList.toggle("demo-mode",mode==="demo");
+  document.dispatchEvent(new CustomEvent("app:session-ready",{detail:{mode}}));
 }
 
 async function configureAuth(){
