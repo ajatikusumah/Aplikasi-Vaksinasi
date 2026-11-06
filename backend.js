@@ -128,8 +128,8 @@ function refreshDashboard(){
  const targetPairs=new Set(filteredTargets.map(t=>t.village_code+"|"+t.species));
  const reportedPairs=new Set(filteredVaccinations.map(e=>e.village_code+"|"+e.species).filter(v=>targetPairs.has(v)));
  const completeness=targetPairs.size?Math.round(reportedPairs.size/targetPairs.size*100):null;
- window.adminCoverageCurrent=coverage===null?"—":coverage+"%";
  const coverage=target?Math.min(100,Math.round(vaccinated/target*100)):null;
+ window.adminCoverageCurrent=coverage===null?"—":coverage+"%";
  $("targetValue").textContent=target.toLocaleString("id-ID");
  $("vaccinatedValue").textContent=vaccinated.toLocaleString("id-ID");
  $("coverageBar").style.width=(coverage||0)+"%";
