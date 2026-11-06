@@ -31,6 +31,7 @@ export async function initBackend(client,user){
   if(!programs.length){
     renderProgramPage();
     $("backendProgramSelect").innerHTML='<option value="">Belum ada program yang dapat diakses</option>';
+    $("targetValue").textContent="—";$("vaccinatedValue").textContent="—";$("completenessValue").textContent="—";$("timelinessValue").textContent="—";$("coverageBar").style.width="0%";$("completenessNote").textContent="Belum ada program yang dapat diakses";$("speciesSummary").innerHTML='<div class="empty-state">Belum ada data program.</div>';
     $("rolePill").textContent=globalRoles.join(", ")||"Belum ada peran";
     return;
   }
