@@ -91,7 +91,7 @@ document.getElementById("groupBtn").addEventListener("click",function(){
 });
 document.getElementById("saveAnimalBtn").addEventListener("click",function(){
   if(window.appSessionMode==="live"){
-    showToast("Pencatatan server belum diaktifkan · ini masih tampilan demo");
+    window.dispatchEvent(new Event("app:save-vaccination"));
     return;
   }
   const count=Math.max(1,parseInt(document.getElementById("animalCount").value,10)||1);
@@ -100,4 +100,4 @@ document.getElementById("saveAnimalBtn").addEventListener("click",function(){
   showToast(count+" "+selectedSpecies.toLowerCase()+" disimpan di perangkat");
   document.getElementById("saveAnimalBtn").textContent="＋ Catat individu";
 });
-document.querySelector(".full-width").addEventListener("click",function(){showToast("Sesi ditutup · data menunggu sinkronisasi")});
+document.querySelector(".full-width").addEventListener("click",function(){showToast(window.appSessionMode==="live"?"Penutupan sesi belum disambungkan; catatan per kejadian tersimpan terpisah.":"Sesi demo ditutup.")});
