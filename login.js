@@ -6,6 +6,11 @@ const demoButton=document.getElementById("demoLogin");
 let supabaseClient=null;
 let sessionMode="demo";
 
+async function openLiveSession(user){
+  showApp("live",user);
+  try{const {initBackend}=await import("./backend.js");await initBackend(supabaseClient,user)}catch(error){const toast=document.getElementById("toast");toast.textContent="Login berhasil, tetapi data backend gagal dimuat.";toast.classList.add("show")}
+}
+
 function showApp(mode, user){
   sessionMode=mode;
   window.appSessionMode=mode;
@@ -25,6 +30,7 @@ function showApp(mode, user){
     signout.onclick=async()=>{
       if(mode==="live"&&supabaseClient) await supabaseClient.auth.signOut();
       document.body.classList.remove("authenticated","demo-mode");
+      window.appSessionMode=null;
       screen.hidden=false;
       form.reset();
     };
@@ -53,6 +59,8 @@ async function configureAuth(){
       supabaseClient=createClient(config.url,config.publishableKey);
       message.textContent="Gunakan akun yang dibuat oleh administrator.";
       submit.disabled=false;
+      const {data:{session}}=await supabaseClient.auth.getSession();
+      if(session) await openLiveSession(session.user);
     }else{
       message.textContent="Login server belum dikonfigurasi. Mockup tersedia melalui akun demo.";
       submit.disabled=true;
@@ -77,8 +85,7 @@ form.addEventListener("submit",async(event)=>{
     submit.disabled=false;
     return;
   }
-  showApp("live",data.user);
-  try{const {initBackend}=await import("./backend.js");await initBackend(supabaseClient,data.user)}catch(error){const toast=document.getElementById("toast");toast.textContent="Login berhasil, tetapi data backend gagal dimuat.";toast.classList.add("show")}
+  await openLiveSession(data.user);
 });
 demoButton.addEventListener("click",()=>showApp("demo",{email:"demo@isikhnas.local"}));
 configureAuth();
