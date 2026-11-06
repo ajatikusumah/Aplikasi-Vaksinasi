@@ -1,30 +1,36 @@
 # iSIKHNAS Vaksinasi
 
-Responsive prototype for coordinating animal vaccination programmes across species, teams and villages.
+Responsive web prototype for animal vaccination programmes across species, teams and villages.
 
-## Current scope
+## Live preview
 
-- Coordinator dashboard with completeness, administrative coverage and timeliness indicators.
-- Multi-species filters and mobile field-worker recording interface.
-- Separate coverage-survey module for independent assessors.
-- Login screen with Supabase email/password authentication and demo entry.
-- Supabase database schema with role-based Row Level Security for programmes, targets, vaccination sessions and events, coverage surveys, and logistics.
+Open the Site preview shared in the project conversation. Choose **Lihat mockup dengan akun demo** to explore sample screens. Demo entries do not reach the database.
 
-## Open the mockup
+## Live backend features
 
-Use the hosted Site preview shared in the project conversation, then choose **Lihat mockup dengan akun demo**. The displayed programme and figures are illustrative. Demo interactions are not saved to the database.
+The app uses Supabase email/password authentication and Postgres Row Level Security. After signing in with an account assigned to a programme, the interface can:
 
-## Backend
+- Create programmes with programme codes, dates, species and completeness, coverage and timeliness targets.
+- Set village-level target populations for each programme and species.
+- Record GPS-tagged vaccination counts and vaccine batch information.
+- Queue vaccination events locally while offline and retry synchronisation with a stable client event ID.
+- Record separate GPS-tagged coverage-survey observations.
+- Assign programme members by Supabase user UUID and programme-specific role.
+- Register logistics items and stock movement transactions.
+- Display programme data in the dashboard, subject to the user's role and programme membership.
 
-Supabase project region: Singapore (Asia Southeast).
+## Backend setup
 
-The initial schema and security migrations are in `backend/migrations`. The app uses the browser-safe publishable key in `supabase-config.js`; this key is intended to be public, while row-level security is enabled on all application tables. Never commit a service-role key.
+Supabase project region: Singapore (Asia Southeast). Database migrations are in `backend/migrations`.
 
-User accounts must be created by an administrator. Assign system roles in `user_roles` and programme-specific roles in `program_members`. Disable public sign-up for a government workflow.
+Roles include national administrator, programme coordinator, team lead, vaccinator, independent coverage assessor, logistics officer and viewer. System roles are maintained in `user_roles`; programme-specific roles are maintained in `program_members`. Public sign-up should remain disabled for an invitation-based government workflow. Create user accounts in Supabase Auth, then assign roles and programme membership.
 
-## Current limitations
+The browser uses the Supabase publishable key in `supabase-config.js`. It is intended for public browser use; table access is enforced by RLS. Never commit a service-role key.
 
-- The dashboard still uses illustrative sample values; authenticated dashboard queries and real vaccine-record writes are the next implementation step.
-- Offline synchronization is represented in the data model with client-generated idempotency IDs, but the browser queue is not implemented yet.
-- No API connection to iSIKHNAS is configured. Confirm identifiers, data dictionary, validation rules, and credentials with the iSIKHNAS data owner before production exchange.
-- Coverage methodology should be agreed before using survey results as programme performance estimates.
+## Current boundaries
+
+- Timeliness is not calculated yet because village-level planned dates are not modelled.
+- Survey results are shown as a crude sample proportion and are not design-weighted prevalence estimates.
+- The map graphic remains illustrative; record coordinates are stored but not yet rendered as a geographic map.
+- The offline queue currently covers vaccination events only.
+- No API exchange with iSIKHNAS is configured. Agree identifiers, data definitions, validation and credentials with the iSIKHNAS data owner before production exchange.
