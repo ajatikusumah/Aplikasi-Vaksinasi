@@ -116,6 +116,11 @@
     if (window.appSessionMode === "live") renderVaccinations(event.detail);
   });
   window.addEventListener("resize", () => map && map.invalidateSize());
+  if (window.appSessionMode) {
+    const mode=window.appSessionMode;
+    if (mode === "demo") render(demoPoints.map(p=>({...p,demo:true})), "Peta interaktif · lokasi dan capaian hanya ilustrasi", false);
+    else render([], "Peta lokasi program", false);
+  }
   if (!window.L) {
     const retry = setInterval(() => {
       if (window.L) { clearInterval(retry); if (window.appSessionMode) document.dispatchEvent(new Event("app:session-ready")); }
