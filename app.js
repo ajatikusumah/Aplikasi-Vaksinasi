@@ -90,6 +90,10 @@ document.getElementById("groupBtn").addEventListener("click",function(){
   showToast("Mode catat kelompok dipilih");
 });
 document.getElementById("saveAnimalBtn").addEventListener("click",function(){
+  if(window.appSessionMode==="live"){
+    showToast("Pencatatan server belum diaktifkan · ini masih tampilan demo");
+    return;
+  }
   const count=Math.max(1,parseInt(document.getElementById("animalCount").value,10)||1);
   const current=parseInt(document.getElementById("sessionVaccines").textContent,10)||0;
   document.getElementById("sessionVaccines").textContent=String(current+count);
