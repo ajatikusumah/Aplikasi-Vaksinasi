@@ -43,12 +43,12 @@ create table public.program_members (
 );
 create or replace function public.add_program_creator_as_member()
 returns trigger language plpgsql security definer set search_path=public
-as $ begin
+as $fn$ begin
   insert into public.program_members(program_id,user_id,role,team_name)
   values(new.id,new.created_by,'program_coordinator','Koordinator')
   on conflict(program_id,user_id) do nothing;
   return new;
-end; $;
+end; $fn$;
 create trigger add_program_creator_to_members
 after insert on public.programs
 for each row execute function public.add_program_creator_as_member();
