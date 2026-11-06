@@ -111,7 +111,7 @@ async function createProgram(event){
  const {error}=await db.from("programs").insert(payload);
  if(error){toast("Program gagal disimpan: "+(error.code==="42501"?"akun tidak memiliki peran koordinator":error.message));return}
  toast("Program berhasil dibuat.");const {data:list}=await db.from("programs").select("id,program_code,name,status,start_date,end_date,species,indicators").order("created_at",{ascending:false});programs=list||[];
- $("backendProgramSelect").innerHTML=programOptionHtml();await selectProgram(programs[0].id);openView("program");
+ $("backendProgramSelect").innerHTML=programOptionHtml();await selectProgram(programs[0].id);document.querySelector("[data-view=program]")?.click();
 }
 async function createTarget(event){
  event.preventDefault();const data=new FormData(event.currentTarget);const {error}=await db.from("village_targets").upsert({program_id:activeProgram.id,village_code:String(data.get("village_code")).trim(),village_name:String(data.get("village_name")).trim(),species:data.get("species"),target_population:Number(data.get("target_population"))},{onConflict:"program_id,village_code,species"});
