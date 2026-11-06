@@ -13,6 +13,7 @@
   <title>iSIKHNAS Vaksinasi</title>
   <link rel="stylesheet" href="login.css">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
 <body>
 <div class="login-screen" id="loginScreen">
@@ -99,22 +100,11 @@
 
         <div class="grid-two">
           <article class="card panel map-panel">
-            <div class="panel-head"><div><h2>Cakupan vaksinasi per desa</h2><p id="mapDataNotice">Visual ilustratif; data spasial aktual menyusul</p></div><button class="text-link" data-open-view="coverage">Lihat verifikasi ↗</button></div>
+            <div class="panel-head"><div><h2>Cakupan vaksinasi per desa</h2><p id="mapDataNotice">Peta interaktif · data contoh ditandai sebagai ilustrasi</p></div><button class="text-link" data-open-view="coverage">Lihat verifikasi ↗</button></div>
             <div class="map-wrap">
-              <svg class="map" viewBox="0 0 680 260" role="img" aria-label="Peta ilustratif desa sasaran di Nusa Tenggara Timur">
-                <rect width="680" height="260" rx="12" fill="#edf4ef"/>
-                <path d="M65 73l85-14 44 22-6 38-83 25-50-27z" fill="#b6d9c9"/><path d="M88 151l50-15 35 24-15 28-57 9-25-21z" fill="#e8b768"/>
-                <path d="M207 51l76-13 45 18 19 38-35 20-78-4-48-24z" fill="#4eaa8d"/><path d="M240 133l49-15 42 23-6 40-50 14-47-27z" fill="#e98970"/>
-                <path d="M326 52l64-16 45 23 12 35-47 20-67-14-22-25z" fill="#54aa8d"/><path d="M372 146l59-20 31 26-20 41-56 8-31-30z" fill="#d7e4d9"/>
-                <path d="M472 57l67-9 42 28-12 35-56 14-56-30z" fill="#e6b360"/><path d="M496 145l58-12 36 24-18 39-56 7-35-29z" fill="#4aa288"/>
-                <path d="M578 83l42-17 27 17-7 32-43 13-25-22z" fill="#e98770"/>
-                <circle cx="118" cy="100" r="10" fill="#103a43"/><text x="118" y="104" text-anchor="middle" class="map-number">72</text>
-                <circle cx="271" cy="79" r="10" fill="#103a43"/><text x="271" y="83" text-anchor="middle" class="map-number">84</text>
-                <circle cx="405" cy="81" r="10" fill="#103a43"/><text x="405" y="85" text-anchor="middle" class="map-number">61</text>
-                <circle cx="529" cy="167" r="10" fill="#103a43"/><text x="529" y="171" text-anchor="middle" class="map-number">43</text>
-                <text x="93" y="232" class="map-label">SUMBA</text><text x="267" y="229" class="map-label">TIMOR</text><text x="479" y="226" class="map-label">FLORES</text><text x="592" y="151" class="map-label">ALOR</text>
-              </svg>
-              <div class="map-legend"><span><i class="legend-dot high"></i>≥70%</span><span><i class="legend-dot mid"></i>40–69%</span><span><i class="legend-dot low"></i>&lt;40%</span><span><i class="legend-dot none"></i>Belum ada data</span></div>
+              <div id="coverageMap" class="coverage-map" role="application" aria-label="Peta interaktif lokasi vaksinasi di Nusa Tenggara Timur"></div>
+              <div class="map-legend"><span><i class="legend-dot high"></i>≥70%</span><span><i class="legend-dot mid"></i>40–69%</span><span><i class="legend-dot low"></i>&lt;40%</span><span><i class="legend-dot none"></i>Belum ada target</span></div>
+              <div id="mapEmptyState" class="map-empty-state">Memuat peta...</div>
             </div>
           </article>
           <article class="card panel">
@@ -182,6 +172,8 @@
 <nav class="mobile-nav" aria-label="Navigasi smartphone"><button class="active" data-view="dashboard"><span>⌂</span>Beranda</button><button data-view="program"><span>▦</span>Program</button><button id="mobileRecord"><span>＋</span>Catat</button><button data-view="coverage"><span>⌖</span>Coverage</button></nav>
 <div class="toast" id="toast" role="status"></div>
 <script src="app.js"></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script defer src="coverage-map.js"></script>
 <script src="pwa.js" defer></script>
 <script src="supabase-config.js"></script>
 <script type="module" src="login.js"></script>
