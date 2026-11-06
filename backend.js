@@ -19,6 +19,8 @@ export async function initBackend(client,user){
   document.querySelectorAll("#speciesChips button").forEach(button=>button.addEventListener("click",()=>{selectedAnimal=button.dataset.animal}));
   $("backendProgramSelect").addEventListener("change",()=>selectProgram($("backendProgramSelect").value));
   $("speciesFilter").addEventListener("change",refreshDashboard);
+  document.querySelectorAll(".session-grid .session-stat b").forEach(el=>{el.textContent="—"});
+  document.querySelector(".lower-grid")?.classList.add("hidden");
   document.addEventListener("app:save-vaccination",saveVaccination);
   document.querySelector(".full-width")?.addEventListener("click",()=>{if(window.appSessionMode==="live"){toast("Sesi ditutup. Data tersinkron yang tersimpan tetap ada.")}});
   document.querySelectorAll('[data-view="program"]').forEach(button=>button.addEventListener("click",renderProgramPage));
@@ -30,6 +32,8 @@ export async function initBackend(client,user){
   const {data:programData,error}=await db.from("programs").select("id,program_code,name,status,start_date,end_date,species,indicators").order("created_at",{ascending:false});
   if(error){$("programBackend").innerHTML='<div class="empty-state"><h2>Akses program belum tersedia</h2><p>Pastikan akun ditambahkan ke program dan mendapat peran di Supabase.</p></div>';return}
   programs=programData||[];
+  const sync=document.querySelector(".sync-status");if(sync)sync.innerHTML="<i></i> Supabase aktif · data program";
+  const foot=document.querySelector(".sidebar-footer");if(foot)foot.innerHTML="<span class=online-dot></span> Akun terhubung · akses sesuai peran";
   if(!programs.length){
     renderProgramPage();
     $("backendProgramSelect").innerHTML='<option value="">Belum ada program yang dapat diakses</option>';
@@ -52,6 +56,7 @@ async function selectProgram(id){
   $("speciesFilter").innerHTML='<option value="all">Semua spesies</option>'+activeSpecies.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
   const membership=await db.from("program_members").select("role,team_name").eq("program_id",id).eq("user_id",signedInUser.id).maybeSingle();
   activeMemberRole=membership.data?.role||null;
+  $("rolePill").textContent=activeMemberRole||globalRoles.join(", ")||"viewer";
   const {data:targetData,error:targetError}=await db.from("village_targets").select("*").eq("program_id",id).order("village_name");
   if(targetError){toast("Gagal memuat target desa.");targets=[]}else targets=targetData||[];
   const [{data:vaccData,error:vaccError},{data:surveyData,error:surveyError}]=await Promise.all([
