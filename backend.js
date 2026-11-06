@@ -20,6 +20,7 @@ export async function initBackend(client,user){
   $("backendProgramSelect").addEventListener("change",()=>selectProgram($("backendProgramSelect").value));
   $("speciesFilter").addEventListener("change",refreshDashboard);
   $("regionFilter").addEventListener("change",refreshDashboard);
+  document.addEventListener("app:area-change",refreshDashboard);
   document.querySelector(".bar-blue")?.style.setProperty("width","0%");
   document.querySelector(".bar-amber")?.style.setProperty("width","0%");
   document.querySelectorAll(".session-grid .session-stat b").forEach(el=>{el.textContent="—"});
@@ -80,9 +81,7 @@ async function selectProgram(id){
 }
 
 function renderRegionOptions(){
- const select=$("regionFilter");
- const villages=[...new Map(targets.map(t=>[t.village_code,t.village_name])).entries()];
- select.innerHTML='<option value="all">Semua desa</option>'+villages.map(([code,name])=>'<option value="'+esc(code)+'">'+esc(name)+'</option>').join("");
+ if(window.setAreaTargets)window.setAreaTargets(targets);
 }
 
 function renderVillageOptions(){
@@ -132,9 +131,24 @@ async function createTarget(event){
 function refreshDashboard(){
  if(!activeProgram)return;
  const species=$("speciesFilter").value||"all";
- const region=$("regionFilter").value||"all";
- const filteredTargets=targets.filter(t=>(species==="all"||t.species===species)&&(region==="all"||t.village_code===region));
- const filteredVaccinations=vaccinations.filter(e=>(species==="all"||e.species===species)&&(region==="all"||e.village_code===region));
+ const area=window.getAreaSelection?window.getAreaSelection():{province:"all",regency:"all",district:"all",village:$("regionFilter").value||"all"};
+ const selected=(row,level)=>{
+   const aliases={
+     province:{code:["province_code"],name:["province_name","province"]},
+     regency:{code:["regency_code","kabupaten_code"],name:["regency_name","kabupaten_name","regency","kabupaten"]},
+     district:{code:["district_code","kecamatan_code"],name:["district_name","kecamatan_name","district","kecamatan"]},
+     village:{code:["village_code","village_id"],name:["village_name","village"]}
+   }[level];
+   const value=area[level]||"all";if(value==="all")return true;
+   return [...aliases.code,...aliases.name].some(key=>String(row[key]??"")===String(value));
+ };
+ const inArea=row=>{
+   const target=targets.find(t=>String(t.village_code)===String(row.village_code));
+   const location=target?{...target,...row}:row;
+   return ["province","regency","district","village"].every(level=>selected(location,level));
+ };
+ const filteredTargets=targets.filter(t=>(species==="all"||t.species===species)&&inArea(t));
+ const filteredVaccinations=vaccinations.filter(e=>(species==="all"||e.species===species)&&inArea(e));
  document.dispatchEvent(new CustomEvent("app:mapdata",{detail:{vaccinations:filteredVaccinations,targets:filteredTargets}}));
  const target=filteredTargets.reduce((sum,t)=>sum+Number(t.target_population||0),0);
  const vaccinated=filteredVaccinations.reduce((sum,e)=>sum+Number(e.vaccinated_count||0),0);
