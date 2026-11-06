@@ -23,6 +23,8 @@ export async function initBackend(client,user){
   document.querySelector(".full-width")?.addEventListener("click",()=>{if(window.appSessionMode==="live"){toast("Sesi ditutup. Data tersinkron yang tersimpan tetap ada.")}});
   document.querySelectorAll('[data-view="program"]').forEach(button=>button.addEventListener("click",renderProgramPage));
   document.querySelectorAll('[data-view="coverage"]').forEach(button=>button.addEventListener("click",renderCoveragePage));
+  document.querySelectorAll('[data-view="teams"]').forEach(button=>button.addEventListener("click",renderTeamPage));
+  document.querySelectorAll('[data-view="logistics"]').forEach(button=>button.addEventListener("click",renderLogisticsPage));
   const {data:roleData,error:roleError}=await db.from("user_roles").select("role").eq("user_id",user.id);
   if(roleError){toast("Tidak dapat memuat peran pengguna.");globalRoles=[]}else globalRoles=(roleData||[]).map(x=>x.role);
   const {data:programData,error}=await db.from("programs").select("id,program_code,name,status,start_date,end_date,species,indicators").order("created_at",{ascending:false});
@@ -201,4 +203,34 @@ async function syncQueue(){
    toast((queue.length-remaining.length)+" catatan berhasil disinkronkan.");
    if(activeProgram){const refreshed=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at").eq("program_id",activeProgram.id).limit(1000);vaccinations=refreshed.data||[];refreshDashboard()}
  }
+}
+
+async function renderTeamPage(){
+ const root=$("programBackend");if(!root)return;
+ if(!activeProgram){root.innerHTML='<div class="empty-state">Belum ada program yang dapat diakses.</div>';return}
+ const {data:members,error}=await db.from("program_members").select("user_id,role,team_name,created_at").eq("program_id",activeProgram.id).order("created_at");
+ if(error){root.innerHTML='<div class="empty-state">Daftar tim tidak dapat dimuat oleh peran akun ini.</div>';return}
+ const rows=(members||[]).map(m=>'<tr><td><code>'+esc(m.user_id)+'</code></td><td>'+esc(m.team_name||"—")+'</td><td>'+esc(m.role)+'</td><td>'+new Date(m.created_at).toLocaleDateString("id-ID")+'</td></tr>').join("")||'<tr><td colspan="4">Belum ada anggota program.</td></tr>';
+ root.innerHTML='<article class="card panel"><div class="panel-head"><div><h2>Tim program · '+esc(activeProgram.program_code)+'</h2><p>Anggota yang ditambahkan ke program dapat melihat catatan bersama sesuai perannya.</p></div></div><div class="table-wrap"><table><thead><tr><th>User ID</th><th>Tim</th><th>Peran</th><th>Ditambahkan</th></tr></thead><tbody>'+rows+'</tbody></table></div></article>'+
+ (canManage()?'<form id="addMemberForm" class="card panel backend-form"><h2>Tambahkan anggota program</h2><p>Masukkan UUID akun yang sudah dibuat di Supabase Auth. Peran berlaku hanya untuk program ini.</p><div class="form-grid"><label>User UUID<input name="user_id" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label><label>Nama tim<input name="team_name" placeholder="Tim Kupang 01"></label><label>Peran<select name="role"><option>team_lead</option><option>vaccinator</option><option>coverage_assessor</option><option>logistics_officer</option><option>viewer</option><option>program_coordinator</option></select></label></div><div class="form-actions"><button class="button primary">Tambahkan ke program</button></div></form>':'<div class="alert-note">Pengelolaan anggota hanya tersedia untuk koordinator program.</div>');
+ $("addMemberForm")?.addEventListener("submit",async event=>{event.preventDefault();const d=new FormData(event.currentTarget);const {error}=await db.from("program_members").upsert({program_id:activeProgram.id,user_id:String(d.get("user_id")).trim(),team_name:String(d.get("team_name")||"").trim()||null,role:d.get("role")},{onConflict:"program_id,user_id"});if(error){toast("Anggota gagal ditambahkan: "+error.message);return}toast("Anggota dan peran program tersimpan.");renderTeamPage()});
+}
+
+async function renderLogisticsPage(){
+ const root=$("programBackend");if(!root)return;
+ if(!activeProgram){root.innerHTML='<div class="empty-state">Belum ada program yang dapat diakses.</div>';return}
+ const [{data:items,error:itemError},{data:tx,error:txError}]=await Promise.all([
+  db.from("logistics_items").select("id,item_name,unit,planned_quantity").eq("program_id",activeProgram.id).order("item_name"),
+  db.from("inventory_transactions").select("id,item_id,transaction_type,quantity,batch_number,occurred_at").eq("program_id",activeProgram.id).order("occurred_at",{ascending:false}).limit(50)
+ ]);
+ if(itemError||txError){root.innerHTML='<div class="empty-state">Data logistik belum dapat dimuat untuk program ini.</div>';return}
+ const itemList=items||[], transactions=tx||[];
+ const txRows=transactions.map(t=>{const item=itemList.find(i=>i.id===t.item_id);return '<tr><td>'+new Date(t.occurred_at).toLocaleDateString("id-ID")+'</td><td>'+esc(item?.item_name||"Item")+'</td><td>'+esc(t.transaction_type)+'</td><td>'+Number(t.quantity).toLocaleString("id-ID")+' '+esc(item?.unit||"")+'</td><td>'+esc(t.batch_number||"—")+'</td></tr>'}).join("")||'<tr><td colspan="5">Belum ada transaksi logistik.</td></tr>';
+ const itemOptions=itemList.map(i=>'<option value="'+i.id+'">'+esc(i.item_name)+' ('+esc(i.unit)+')</option>').join("");
+ root.innerHTML='<article class="card panel"><div class="panel-head"><div><h2>Logistik program · '+esc(activeProgram.program_code)+'</h2><p>Rencana kebutuhan, penerimaan, distribusi, pemakaian, dan sisa logistik.</p></div></div><div class="table-wrap"><table><thead><tr><th>Item</th><th>Satuan</th><th>Rencana kebutuhan</th></tr></thead><tbody>'+(itemList.map(i=>'<tr><td>'+esc(i.item_name)+'</td><td>'+esc(i.unit)+'</td><td>'+Number(i.planned_quantity).toLocaleString("id-ID")+'</td></tr>').join("")||'<tr><td colspan="3">Belum ada item logistik.</td></tr>')+'</tbody></table></div></article>'+
+ (canManage()||role("logistics_officer")?'<form id="itemForm" class="card panel backend-form"><h2>Tambah item kebutuhan</h2><div class="form-grid"><label>Nama item<input name="item_name" required placeholder="Vaksin rabies"></label><label>Satuan<input name="unit" required placeholder="dosis"></label><label>Jumlah rencana<input name="planned_quantity" type="number" min="0" step="0.01" value="0"></label></div><div class="form-actions"><button class="button primary">Simpan item</button></div></form>':"")+
+ (role("logistics_officer")?'<form id="transactionForm" class="card panel backend-form"><h2>Catat pergerakan stok</h2><div class="form-grid"><label>Item<select name="item_id" required>'+itemOptions+'</select></label><label>Jenis transaksi<select name="transaction_type"><option>received</option><option>issued</option><option>used</option><option>wasted</option><option>returned</option></select></label><label>Jumlah<input name="quantity" type="number" min="0.01" step="0.01" required></label><label>Nomor batch<input name="batch_number"></label><label>Kode desa (jika relevan)<input name="village_code"></label></div><div class="form-actions"><button class="button primary">Simpan transaksi</button></div></form>':'<div class="alert-note">Pencatatan transaksi hanya tersedia untuk petugas logistik.</div>')+
+ '<article class="card panel"><div class="panel-head"><div><h2>Transaksi terbaru</h2><p>Riwayat pergerakan stok program</p></div></div><div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Item</th><th>Transaksi</th><th>Jumlah</th><th>Batch</th></tr></thead><tbody>'+txRows+'</tbody></table></div></article>';
+ $("itemForm")?.addEventListener("submit",async event=>{event.preventDefault();const d=new FormData(event.currentTarget);const {error}=await db.from("logistics_items").insert({program_id:activeProgram.id,item_name:String(d.get("item_name")).trim(),unit:String(d.get("unit")).trim(),planned_quantity:Number(d.get("planned_quantity"))||0});if(error){toast("Item gagal disimpan: "+error.message);return}toast("Item logistik tersimpan.");renderLogisticsPage()});
+ $("transactionForm")?.addEventListener("submit",async event=>{event.preventDefault();const d=new FormData(event.currentTarget);const {error}=await db.from("inventory_transactions").insert({client_event_id:crypto.randomUUID(),program_id:activeProgram.id,item_id:d.get("item_id"),transaction_type:d.get("transaction_type"),quantity:Number(d.get("quantity")),batch_number:String(d.get("batch_number")||"").trim()||null,village_code:String(d.get("village_code")||"").trim()||null});if(error){toast("Transaksi gagal disimpan: "+error.message);return}toast("Transaksi logistik tersimpan.");renderLogisticsPage()});
 }
