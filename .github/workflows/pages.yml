@@ -26,9 +26,10 @@ jobs:
           enablement: true
       - name: Prepare static app
         run: |
-          mkdir -p _site/icons
+          mkdir -p _site/icons _site/data
           cp index.html login.css styles.css app.js backend.js coverage-map.js login.js supabase-config.js pwa.js service-worker.js manifest.webmanifest _site/
           cp icons/icon.svg _site/icons/
+          cp data/wilayah.gz.b64 _site/data/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
