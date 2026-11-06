@@ -138,9 +138,13 @@ function selectedAreas(){
 function fillAreaSelect(level,nodes,disabled,selected){
   const select=areaControls[level];if(!select)return;
   const optionName=allAreaOption[level];
+  const nameCounts=level==="village"?nodes.reduce((counts,node)=>{counts[node[1]]=(counts[node[1]]||0)+1;return counts;},{}):{};
   const labels=nodes.map(node=>{
     let label=node[1];
-    if(level==="village"&&node[2])label+=" ("+node[2].toLowerCase()+")";
+    if(level==="village"){
+      if(node[2])label+=" ("+node[2].toLowerCase()+")";
+      if(nameCounts[node[1]]>1)label+=" · "+node[0];
+    }
     return '<option value="'+escapeArea(node[0])+'">'+escapeArea(label)+'</option>';
   }).join("");
   select.innerHTML='<option value="all">'+optionName+'</option>'+labels;
