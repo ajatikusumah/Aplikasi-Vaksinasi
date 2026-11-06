@@ -5,6 +5,8 @@ const APP_SHELL = [
   "./login.css",
   "./styles.css",
   "./app.js",
+  "./backend.js",
+  "./coverage-map.js",
   "./supabase-config.js",
   "./login.js",
   "./pwa.js",
