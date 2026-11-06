@@ -19,6 +19,9 @@ export async function initBackend(client,user){
   document.querySelectorAll("#speciesChips button").forEach(button=>button.addEventListener("click",()=>{selectedAnimal=button.dataset.animal}));
   $("backendProgramSelect").addEventListener("change",()=>selectProgram($("backendProgramSelect").value));
   $("speciesFilter").addEventListener("change",refreshDashboard);
+  $("regionFilter").addEventListener("change",refreshDashboard);
+  document.querySelector(".bar-blue")?.style.setProperty("width","0%");
+  document.querySelector(".bar-amber")?.style.setProperty("width","0%");
   document.querySelectorAll(".session-grid .session-stat b").forEach(el=>{el.textContent="—"});
   document.querySelector(".lower-grid")?.classList.add("hidden");
   document.addEventListener("app:save-vaccination",saveVaccination);
@@ -35,6 +38,7 @@ export async function initBackend(client,user){
   const sync=document.querySelector(".sync-status");if(sync)sync.innerHTML="<i></i> Supabase aktif · data program";
   const foot=document.querySelector(".sidebar-footer");if(foot)foot.innerHTML="<span class=online-dot></span> Akun terhubung · akses sesuai peran";
   if(!programs.length){
+    $("pageTitle").textContent="Belum ada program";
     renderProgramPage();
     $("backendProgramSelect").innerHTML='<option value="">Belum ada program yang dapat diakses</option>';
     $("targetValue").textContent="—";$("vaccinatedValue").textContent="—";$("completenessValue").textContent="—";$("timelinessValue").textContent="—";$("coverageBar").style.width="0%";$("completenessNote").textContent="Belum ada program yang dapat diakses";$("speciesSummary").innerHTML='<div class="empty-state">Belum ada data program.</div>';
@@ -59,6 +63,7 @@ async function selectProgram(id){
   $("rolePill").textContent=activeMemberRole||globalRoles.join(", ")||"viewer";
   const {data:targetData,error:targetError}=await db.from("village_targets").select("*").eq("program_id",id).order("village_name");
   if(targetError){toast("Gagal memuat target desa.");targets=[]}else targets=targetData||[];
+  renderRegionOptions();
   const [{data:vaccData,error:vaccError},{data:surveyData,error:surveyError}]=await Promise.all([
     db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at").eq("program_id",id).order("vaccinated_at",{ascending:false}).limit(1000),
     db.from("coverage_surveys").select("village_code,species,survey_date,sampled_households,animals_eligible,animals_verified_vaccinated,method").eq("program_id",id).order("survey_date",{ascending:false}).limit(1000)
@@ -72,6 +77,12 @@ async function selectProgram(id){
   $("fieldProgramDate").textContent=activeProgram.start_date+" – "+activeProgram.end_date;
   renderVillageOptions();
   renderProgramPage();renderCoveragePage();refreshDashboard();
+}
+
+function renderRegionOptions(){
+ const select=$("regionFilter");
+ const villages=[...new Map(targets.map(t=>[t.village_code,t.village_name])).entries()];
+ select.innerHTML='<option value="all">Semua desa</option>'+villages.map(([code,name])=>'<option value="'+esc(code)+'">'+esc(name)+'</option>').join("");
 }
 
 function renderVillageOptions(){
@@ -121,14 +132,15 @@ async function createTarget(event){
 function refreshDashboard(){
  if(!activeProgram)return;
  const species=$("speciesFilter").value||"all";
- const filteredTargets=targets.filter(t=>species==="all"||t.species===species);
- const filteredVaccinations=vaccinations.filter(e=>species==="all"||e.species===species);
+ const region=$("regionFilter").value||"all";
+ const filteredTargets=targets.filter(t=>(species==="all"||t.species===species)&&(region==="all"||t.village_code===region));
+ const filteredVaccinations=vaccinations.filter(e=>(species==="all"||e.species===species)&&(region==="all"||e.village_code===region));
  const target=filteredTargets.reduce((sum,t)=>sum+Number(t.target_population||0),0);
  const vaccinated=filteredVaccinations.reduce((sum,e)=>sum+Number(e.vaccinated_count||0),0);
  const targetPairs=new Set(filteredTargets.map(t=>t.village_code+"|"+t.species));
  const reportedPairs=new Set(filteredVaccinations.map(e=>e.village_code+"|"+e.species).filter(v=>targetPairs.has(v)));
  const completeness=targetPairs.size?Math.round(reportedPairs.size/targetPairs.size*100):null;
- const coverage=target?Math.min(100,Math.round(vaccinated/target*100)):null;
+ const coverage=target?Math.round(vaccinated/target*100):null;
  window.adminCoverageCurrent=coverage===null?"—":coverage+"%";
  $("targetValue").textContent=target.toLocaleString("id-ID");
  $("vaccinatedValue").textContent=vaccinated.toLocaleString("id-ID");
@@ -137,8 +149,8 @@ function refreshDashboard(){
  $("completenessNote").textContent=reportedPairs.size+" dari "+targetPairs.size+" desa–spesies memiliki catatan";
  $("timelinessValue").textContent="—";
  $("speciesSummary").innerHTML=(species==="all"?[...new Set(targets.map(t=>t.species))]:[species]).map(s=>{
-   const tg=targets.filter(t=>t.species===s).reduce((n,t)=>n+Number(t.target_population||0),0);
-   const vac=vaccinations.filter(e=>e.species===s).reduce((n,e)=>n+Number(e.vaccinated_count||0),0);
+   const tg=filteredTargets.filter(t=>t.species===s).reduce((n,t)=>n+Number(t.target_population||0),0);
+   const vac=filteredVaccinations.filter(e=>e.species===s).reduce((n,e)=>n+Number(e.vaccinated_count||0),0);
    const pct=tg?Math.round(vac/tg*100):0;
    const icon={Anjing:"🐕",Sapi:"🐄",Kambing:"🐐",Kucing:"🐈"}[s]||"🐾";
    return '<div class="species-row"><div class="animal-icon">'+icon+'</div><div><div class="species-name">'+esc(s)+'</div><div class="species-meta">Data program</div></div><div class="species-val">'+vac.toLocaleString("id-ID")+'<small>'+(tg?pct+"%":"Belum ada target")+'</small></div><div class="species-track"><i style="width:'+pct+'%"></i></div></div>';
