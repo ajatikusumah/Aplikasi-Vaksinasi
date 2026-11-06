@@ -1,6 +1,6 @@
 :root{--login-ink:#102c40;--login-teal:#087f72;--login-soft:#eef4f1}
 .login-screen{min-height:100vh;display:grid;grid-template-columns:minmax(420px,47%) 1fr;background:#fff;color:var(--login-ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-.login-screen[hidden]{display:none}
+.login-screen[hidden]{display:none}.login-screen.password-setup{grid-template-columns:1fr}
 .login-card{width:min(440px,calc(100% - 48px));margin:auto;padding:52px 0}
 .login-brand{display:flex;align-items:center;gap:12px;color:#103a43;margin-bottom:58px}.login-brand .brand-icon{width:42px;height:42px;border-radius:13px;background:#e4f3ed;color:#087f72;display:grid;place-items:center;font-size:25px}.login-brand strong,.login-brand span{display:block}.login-brand strong{font-size:16px;letter-spacing:.09em}.login-brand span{font-size:10px;letter-spacing:.19em;color:#608179;margin-top:3px}
 .login-kicker{font-size:11px;letter-spacing:.16em;font-weight:800;color:#0a8876}.login-card h1{font-size:32px;letter-spacing:-.04em;margin:10px 0}.login-intro{color:#6a7a83;font-size:14px;line-height:1.6;margin:0 0 30px}
