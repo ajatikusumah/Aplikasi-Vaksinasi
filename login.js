@@ -39,8 +39,10 @@ function showApp(mode, user){
 
 async function configureAuth(){
   try{
-    const response=await fetch("/api/config",{cache:"no-store"});
-    const config=await response.json();
+    const config=window.SUPABASE_CONFIG || await (async()=>{
+      const response=await fetch("/api/config",{cache:"no-store"});
+      return response.json();
+    })();
     if(config.url&&config.publishableKey){
       const {createClient}=await import("https://esm.sh/@supabase/supabase-js@2");
       supabaseClient=createClient(config.url,config.publishableKey);
