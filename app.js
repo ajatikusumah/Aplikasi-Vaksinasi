@@ -167,7 +167,6 @@ function renderAreaFilters(){
   if(legacy)legacy.dispatchEvent(new Event("change"));
 }
 function setAreaTargets(targets){
-  if(!Array.isArray(targets)||!targets.length)return;
   const unique=new Map();
   targets.forEach(row=>{
     const village=String(row.village_code||row.village_id||row.village_name||"");
