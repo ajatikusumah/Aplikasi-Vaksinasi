@@ -32,6 +32,7 @@
       <button class="login-submit" id="loginSubmit" type="submit">Masuk ke aplikasi <span>→</span></button>
     </form>
     <div class="login-divider"><span>atau</span></div>
+    <a class="install-link" href="./install.html">Unduh / pasang aplikasi smartphone ↗</a>
     <button class="demo-submit" id="demoLogin" type="button">Lihat mockup dengan akun demo</button>
     <div class="login-foot"><span class="secure-dot"></span> Akses berbasis peran · data contoh untuk demonstrasi</div>
   </div>
@@ -57,6 +58,7 @@
       <button class="nav-item" data-view="teams"><span>♧</span>Tim lapangan</button>
       <button class="nav-item" data-view="logistics"><span>▤</span>Logistik</button>
       <button class="nav-item" data-view="reports"><span>▧</span>Laporan</button>
+      <a class="nav-item install-nav" href="./install.html"><span>↓</span>Aplikasi smartphone</a>
     </nav>
     <div class="sidebar-program">
       <span class="eyebrow">PROGRAM AKTIF</span>
@@ -147,13 +149,15 @@
       <section id="fieldView" class="hidden field-view">
         <div class="field-header"><div><span class="tag"><i></i> MODE PETUGAS</span><h1>Tugas lapangan</h1><p>Selamat pagi, Andi</p></div><button class="button" id="coordinatorModeBtn">Tampilan koordinator</button></div>
         <article class="field-program"><small id="fieldProgramCode">PROGRAM AKTIF · PILIH PROGRAM</small><h2 id="fieldProgramName">Belum ada program</h2><div class="field-program-meta"><span id="fieldProgramDate">—</span><span id="fieldVillageLabel">Pilih desa sasaran di formulir</span></div></article>
-        <div class="offline-banner" id="offlineStatus"><span>◉</span><div><b>Status data</b><small>Catatan hanya tersimpan setelah berhasil disinkronkan.</small></div></div>
+        <div class="offline-banner" id="offlineStatus"><span>◉</span><div><b>Status data</b><small>Catatan tersimpan lokal dan akan disinkronkan saat jaringan tersedia.</small></div></div>
+        <a class="install-inline" href="./install.html">Petunjuk pemasangan aplikasi smartphone ↗</a>
         <div class="section-title"><h2>Sesi vaksinasi</h2><button class="text-link">Session log ↗</button></div>
         <div class="session-grid">
           <div class="card session-stat"><b>00:48</b><small>Durasi sesi</small></div><div class="card session-stat"><b>2,4 km</b><small>Jarak sesi</small></div><div class="card session-stat"><b id="sessionVaccines">28</b><small>Vaksinasi sesi</small></div>
           <div class="card session-stat"><b>34</b><small>Hewan ditemui</small></div><div class="card session-stat"><b>62%</b><small>Zona tercakup</small></div><div class="card session-stat"><b>86</b><small>Vaksinasi hari ini</small></div>
         </div>
-        <div class="section-title"><h2>Catat vaksinasi</h2><span class="gps">⌖ GPS ±8 m</span></div>
+        <div class="section-title"><h2>Catat vaksinasi</h2><span class="gps" id="gpsSummary">⌖ Lokasi belum direkam</span></div>
+        <div class="gps-capture card"><div><b>Geotag lokasi kegiatan</b><small id="gpsCoordinates">Koordinat GPS akan dicatat bersama laporan vaksinasi.</small></div><button class="button outline" id="captureGpsBtn" type="button">⌖ Ambil GPS</button></div>
         <article class="card field-form">
           <label class="form-label">Spesies</label>
           <div class="species-chips" id="speciesChips"><button class="selected" data-animal="Anjing">🐕 Anjing</button><button data-animal="Sapi">🐄 Sapi</button><button data-animal="Kambing">🐐 Kambing</button><button data-animal="Kucing">🐈 Kucing</button></div>
@@ -175,6 +179,7 @@
 <script src="app.js"></script>
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script defer src="coverage-map.js"></script>
+<script src="field-ui.js" defer></script>
 <script src="pwa.js" defer></script>
 <script src="supabase-config.js"></script>
 <script type="module" src="login.js"></script>
