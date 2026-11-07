@@ -33,9 +33,13 @@ export async function initBackend(client,user){
   document.querySelectorAll('[data-view="logistics"]').forEach(button=>button.addEventListener("click",renderLogisticsPage));
   const {data:roleData,error:roleError}=await db.from("user_roles").select("role").eq("user_id",user.id);
   if(roleError){toast("Tidak dapat memuat peran pengguna.");globalRoles=[]}else globalRoles=(roleData||[]).map(x=>x.role);
+  let offlineCache=null;
+  try{offlineCache=JSON.parse(localStorage.getItem("isikhnas-vax-cache:"+signedInUser.id)||"null")}catch(e){}
+  if(roleError&&offlineCache?.globalRoles)globalRoles=offlineCache.globalRoles;
   const {data:programData,error}=await db.from("programs").select("id,program_code,name,status,start_date,end_date,species,indicators").order("created_at",{ascending:false});
-  if(error){$("programBackend").innerHTML='<div class="empty-state"><h2>Akses program belum tersedia</h2><p>Pastikan akun ditambahkan ke program dan mendapat peran di Supabase.</p></div>';return}
-  programs=programData||[];
+  if(error&&!offlineCache?.programs?.length){$("programBackend").innerHTML='<div class="empty-state"><h2>Akses program belum tersedia</h2><p>Pastikan akun ditambahkan ke program dan mendapat peran di Supabase.</p></div>';return}
+  programs=error?offlineCache.programs:(programData||[]);
+  if(!error){try{localStorage.setItem("isikhnas-vax-cache:"+signedInUser.id,JSON.stringify({programs:programs,globalRoles:globalRoles,updatedAt:new Date().toISOString()}))}catch(e){}}
   const sync=document.querySelector(".sync-status");if(sync)sync.innerHTML="<i></i> Supabase aktif · data program";
   const foot=document.querySelector(".sidebar-footer");if(foot)foot.innerHTML="<span class=online-dot></span> Akun terhubung · akses sesuai peran";
   if(!programs.length){
@@ -50,6 +54,9 @@ export async function initBackend(client,user){
   $("rolePill").textContent=globalRoles.join(", ")||"Anggota program";
   await selectProgram(programs[0].id);
   window.addEventListener("online",syncQueue);
+  window.addEventListener("online",refreshQueueStatus);
+  window.addEventListener("offline",refreshQueueStatus);
+  refreshQueueStatus();
   syncQueue();
 }
 
