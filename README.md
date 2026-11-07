@@ -2,9 +2,9 @@
 
 Responsive web prototype for animal vaccination programmes across species, teams and villages.
 
-## Live preview
+## GitHub Pages
 
-Open the Site preview shared in the project conversation. Choose **Lihat mockup dengan akun demo** to explore sample screens. Demo entries do not reach the database.
+The app is published at [https://ajatikusumah.github.io/Aplikasi-Vaksinasi/](https://ajatikusumah.github.io/Aplikasi-Vaksinasi/). The smartphone installation guide is available at [https://ajatikusumah.github.io/Aplikasi-Vaksinasi/install.html](https://ajatikusumah.github.io/Aplikasi-Vaksinasi/install.html). Choose **Lihat mockup dengan akun demo** to explore sample screens. Demo entries do not reach the database.
 
 ## Live backend features
 
