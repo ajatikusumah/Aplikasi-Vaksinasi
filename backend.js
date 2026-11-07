@@ -66,6 +66,17 @@ async function selectProgram(id){
   $("backendProgramSelect").value=id;
   const activeSpecies=activeProgram.species||[];
   $("speciesFilter").innerHTML='<option value="all">Semua spesies</option>'+activeSpecies.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
+  if(!navigator.onLine){
+    let saved=null;try{saved=JSON.parse(localStorage.getItem("isikhnas-vax-cache:"+signedInUser.id)||"null")}catch(e){}
+    if(saved?.program?.id===id){
+      activeMemberRole=saved.role||null;targets=saved.targets||[];vaccinations=saved.vaccinations||[];surveys=saved.surveys||[];
+      $("rolePill").textContent=activeMemberRole||globalRoles.join(", ")||"viewer";
+      $("pageTitle").textContent=activeProgram.name;$("coverageProgramLabel").textContent=activeProgram.program_code+" · "+activeProgram.name;
+      $("fieldProgramCode").textContent="PROGRAM AKTIF · "+activeProgram.program_code;$("fieldProgramName").textContent=activeProgram.name;
+      $("fieldProgramDate").textContent=activeProgram.start_date+" – "+activeProgram.end_date;
+      renderRegionOptions();renderVillageOptions();renderProgramPage();renderCoveragePage();refreshDashboard();refreshQueueStatus();return;
+    }
+  }
   const membership=await db.from("program_members").select("role,team_name").eq("program_id",id).eq("user_id",signedInUser.id).maybeSingle();
   activeMemberRole=membership.data?.role||null;
   $("rolePill").textContent=activeMemberRole||globalRoles.join(", ")||"viewer";
@@ -78,6 +89,7 @@ async function selectProgram(id){
   ]);
   if(vaccError)toast("Gagal memuat catatan vaksinasi.");if(surveyError)toast("Gagal memuat hasil survei.");
   vaccinations=vaccData||[];surveys=surveyData||[];
+  try{localStorage.setItem("isikhnas-vax-cache:"+signedInUser.id,JSON.stringify({program:activeProgram,programs:programs,globalRoles:globalRoles,role:activeMemberRole,targets:targets,vaccinations:vaccinations,surveys:surveys,updatedAt:new Date().toISOString()}))}catch(e){}
   $("pageTitle").textContent=activeProgram.name;
   $("coverageProgramLabel").textContent=activeProgram.program_code+" · "+activeProgram.name;
   $("fieldProgramCode").textContent="PROGRAM AKTIF · "+activeProgram.program_code;
