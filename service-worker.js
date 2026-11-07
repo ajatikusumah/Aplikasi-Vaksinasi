@@ -1,7 +1,9 @@
-const CACHE_NAME = "isikhnas-vaksinasi-shell-v3";
+const CACHE_NAME = "isikhnas-vaksinasi-shell-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./install.html",
+  "./field-ui.js",
   "./login.css",
   "./styles.css",
   "./app.js",
@@ -27,16 +29,26 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (request.method !== "GET") return;
+  if (url.hostname.endsWith("esm.sh")) {
+    event.respondWith(caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(request);
+      try { const response = await fetch(request); if (response.ok) await cache.put(request, response.clone()); return response; }
+      catch { return cached || new Response("Offline dependency unavailable", { status: 503 }); }
+    }));
+    return;
+  }
+  if (url.origin !== self.location.origin) return;
   const scope = new URL("./", self.registration.scope);
   if (!url.pathname.startsWith(scope.pathname)) return;
 
   if (request.mode === "navigate") {
+    const fallback = url.pathname.endsWith("/install.html") ? "./install.html" : "./index.html";
     event.respondWith(fetch(request).then(response => {
       const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+      caches.open(CACHE_NAME).then(cache => cache.put(fallback, copy));
       return response;
-    }).catch(() => caches.match("./index.html")));
+    }).catch(() => caches.match(fallback) || caches.match("./index.html")));
     return;
   }
 
