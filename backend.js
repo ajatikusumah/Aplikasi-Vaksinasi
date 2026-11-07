@@ -236,7 +236,15 @@ async function getGps(){
  return new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>{const gps={latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,capturedAt:new Date().toISOString()};window.currentCapturedGps=gps;const summary=$("gpsSummary"),coordinates=$("gpsCoordinates");if(summary)summary.textContent="⌖ GPS ±"+Math.round(gps.accuracy)+" m";if(coordinates)coordinates.textContent=gps.latitude.toFixed(6)+", "+gps.longitude.toFixed(6)+" · akurasi ±"+Math.round(gps.accuracy)+" m";resolve(gps)},()=>{toast("Lokasi belum tersedia. Aktifkan izin lokasi lalu coba lagi.");resolve(null)},{enableHighAccuracy:true,timeout:15000,maximumAge:30000}));
 }
 function queueKey(){return "isikhnas-vax-queue:"+signedInUser.id}
-function queueRecord(record){const q=JSON.parse(localStorage.getItem(queueKey())||"[]");q.push(record);localStorage.setItem(queueKey(),JSON.stringify(q))}
+function queueRecord(record){const q=JSON.parse(localStorage.getItem(queueKey())||"[]");if(!q.some(item=>item.client_event_id===record.client_event_id))q.push(record);localStorage.setItem(queueKey(),JSON.stringify(q));refreshQueueStatus()}
+function refreshQueueStatus(){
+ if(!signedInUser)return;const status=$("offlineStatus");if(!status)return;
+ let count=0;try{count=JSON.parse(localStorage.getItem(queueKey())||"[]").length}catch(e){}
+ const online=navigator.onLine;status.classList.toggle("is-offline",!online);
+ const title=online?(count?"Menunggu sinkronisasi":"Online · siap mencatat"):"Mode offline"+(count?" · "+count+" catatan menunggu":"");
+ const note=online?(count?count+" catatan menunggu dikirim.":"Catatan tersinkron langsung; pencatatan offline tersedia."):"Catatan tersimpan di perangkat dan akan dikirim otomatis saat koneksi kembali.";
+ status.innerHTML="<span>◉</span><div><b>"+title+"</b><small>"+note+"</small></div>";
+}
 async function sendRecord(record){
  const {error}=await db.from("vaccination_events").upsert(record,{onConflict:"client_event_id"});
  if(error){
@@ -248,12 +256,13 @@ async function sendRecord(record){
  const r=await db.from("vaccination_events").select("village_code,species,vaccinated_count,vaccinated_at,latitude,longitude").eq("program_id",activeProgram.id).order("vaccinated_at",{ascending:false}).limit(1000);vaccinations=r.data||[];refreshDashboard();
 }
 async function syncQueue(){
- if(!db||!signedInUser||!navigator.onLine)return;
+ if(!db||!signedInUser||!navigator.onLine){refreshQueueStatus();return;}
  const key=queueKey();const queue=JSON.parse(localStorage.getItem(key)||"[]");if(!queue.length)return;
  const status=$("offlineStatus");if(status)status.innerHTML="<span>◉</span><div><b>Menyinkronkan</b><small>"+queue.length+" catatan menunggu dikirim.</small></div>";
  const remaining=[];
  for(const record of queue){const {error}=await db.from("vaccination_events").upsert(record,{onConflict:"client_event_id"});if(error)remaining.push(record)}
  localStorage.setItem(key,JSON.stringify(remaining));
+ refreshQueueStatus();
  if(status)status.innerHTML=remaining.length?'<span>◉</span><div><b>Belum tersinkron</b><small>'+remaining.length+' catatan masih menunggu.</small></div>':'<span>◉</span><div><b>Tersinkron</b><small>Antrean lokal kosong.</small></div>';
  if(queue.length>remaining.length){
    toast((queue.length-remaining.length)+" catatan berhasil disinkronkan.");
