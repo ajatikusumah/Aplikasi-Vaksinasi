@@ -223,7 +223,7 @@ async function saveSurvey(event){
 async function saveVaccination(){
  if(!activeProgram||!canVaccinate()){toast("Akun tidak memiliki peran tim vaksinasi pada program ini.");return}
  const village=$("fieldVillageSelect").value;if(!village){toast("Pilih desa sasaran.");return}
- const count=Math.max(1,Number($("animalCount").value)||1);const gps=await getGps();if(!gps)return;
+ const count=Math.max(1,Number($("animalCount").value)||1);let gps=window.currentCapturedGps;if(!gps||Date.now()-new Date(gps.capturedAt).getTime()>10*60*1000){gps=await getGps();if(!gps)return}
  const vaccine=document.querySelector(".vaccine-row select")?.value||null;
  const batch=document.querySelector(".vaccine-row input")?.value||null;
  const record={client_event_id:crypto.randomUUID(),program_id:activeProgram.id,village_code:village,species:selectedAnimal,vaccinated_count:count,vaccinated_at:new Date().toISOString(),latitude:gps.latitude,longitude:gps.longitude,location_accuracy_m:gps.accuracy,vaccine_name:vaccine,batch_number:batch,animal_group:{count,recorded_as:count>1?"group":"individual"},created_by:signedInUser.id};
@@ -233,7 +233,7 @@ async function saveVaccination(){
 }
 async function getGps(){
  if(!navigator.geolocation){toast("Perangkat tidak mendukung GPS.");return null}
- return new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),()=>{toast("Lokasi belum tersedia. Aktifkan izin lokasi lalu coba lagi.");resolve(null)},{enableHighAccuracy:true,timeout:15000,maximumAge:30000}));
+ return new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>{const gps={latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,capturedAt:new Date().toISOString()};window.currentCapturedGps=gps;const summary=$("gpsSummary"),coordinates=$("gpsCoordinates");if(summary)summary.textContent="⌖ GPS ±"+Math.round(gps.accuracy)+" m";if(coordinates)coordinates.textContent=gps.latitude.toFixed(6)+", "+gps.longitude.toFixed(6)+" · akurasi ±"+Math.round(gps.accuracy)+" m";resolve(gps)},()=>{toast("Lokasi belum tersedia. Aktifkan izin lokasi lalu coba lagi.");resolve(null)},{enableHighAccuracy:true,timeout:15000,maximumAge:30000}));
 }
 function queueKey(){return "isikhnas-vax-queue:"+signedInUser.id}
 function queueRecord(record){const q=JSON.parse(localStorage.getItem(queueKey())||"[]");q.push(record);localStorage.setItem(queueKey(),JSON.stringify(q))}
