@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#103a43">
+  <title>Aplikasi smartphone · iSIKHNAS Vaksinasi</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+</head>
+<body class="install-page">
+  <main class="install-wrap">
+    <a class="install-back" href="/">← Kembali ke iSIKHNAS Vaksinasi</a>
+    <section class="install-hero">
+      <div class="brand-icon">✳</div><div class="install-eyebrow">APLIKASI PETUGAS LAPANGAN</div>
+      <h1>Pasang iSIKHNAS Vaksinasi di smartphone</h1>
+      <p>Aplikasi web dapat dipasang dari browser ke layar utama. Setelah halaman dan data penugasan dimuat saat online, petugas dapat membuka aplikasi dan menyimpan catatan vaksinasi saat jaringan terputus.</p>
+      <button id="installButton" class="button primary" type="button">↓ Pasang aplikasi</button>
+      <p id="installMessage" class="install-message" role="status">Tidak perlu mengunduh berkas APK. Pemasangan dilakukan melalui browser.</p>
+    </section>
+    <section class="install-steps">
+      <article class="card install-step"><span>01</span><h2>Android</h2><ol><li>Buka halaman ini di Chrome.</li><li>Pilih <b>Pasang aplikasi</b>. Jika tombol tidak muncul, buka menu ⋮ lalu pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.</li><li>Buka ikon iSIKHNAS Vaksinasi dari layar utama dan masuk saat online untuk memuat penugasan.</li></ol></article>
+      <article class="card install-step"><span>02</span><h2>iPhone / iPad</h2><ol><li>Buka halaman ini di Safari.</li><li>Ketuk tombol <b>Bagikan</b>, lalu pilih <b>Tambahkan ke Layar Utama</b>.</li><li>Buka ikon di layar utama. Muat program dan target desa saat online sebelum berangkat ke lapangan.</li></ol></article>
+    </section>
+    <section class="card install-note"><b>Penggunaan offline</b><p>Catatan dibuat di perangkat dan masuk antrean lokal. Saat koneksi kembali, aplikasi mengirim antrean secara otomatis. Koordinat GPS memerlukan izin lokasi perangkat dan GPS dapat digunakan tanpa koneksi internet.</p><p>Gunakan perangkat yang ditugaskan, kunci layar, dan sinkronkan catatan sebelum menghapus data browser atau mencopot pemasangan aplikasi.</p></section>
+    <footer>iSIKHNAS Vaksinasi · Pencatatan lapangan multi-spesies</footer>
+  </main>
+  <script>
+    if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
+    let installPrompt=null;const button=document.getElementById("installButton"),message=document.getElementById("installMessage");
+    window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();installPrompt=event;button.disabled=false});
+    button.addEventListener("click",async()=>{if(installPrompt){installPrompt.prompt();const choice=await installPrompt.userChoice;message.textContent=choice.outcome==="accepted"?"Aplikasi sedang dipasang ke layar utama.":"Pemasangan dibatalkan. Anda tetap dapat mengikuti petunjuk browser.";installPrompt=null;return}if(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone){message.textContent="Aplikasi sudah terpasang di perangkat ini.";return}message.textContent=/iPhone|iPad|iPod/.test(navigator.userAgent)?"Di Safari, ketuk Bagikan lalu Tambahkan ke Layar Utama.":"Buka menu browser dan pilih Instal aplikasi atau Tambahkan ke layar utama."});
+    button.disabled=false;
+  </script>
+</body></html>

@@ -18,6 +18,7 @@ The app uses Supabase email/password authentication and Postgres Row Level Secur
 - Assign programme members by Supabase user UUID and programme-specific role.
 - Register logistics items and stock movement transactions.
 - Display programme data in the dashboard, subject to the user's role and programme membership.
+- Filter dashboard summaries by programme, species, cascading administrative region and date range.
 
 ## Backend setup
 
@@ -29,8 +30,9 @@ The browser uses the Supabase publishable key in `supabase-config.js`. It is int
 
 ## Current boundaries
 
+- Demo vaccination data are illustrative, not field achievements. Date filters on the demo use the simulated date buckets.
 - Timeliness is not calculated yet because village-level planned dates are not modelled.
 - Survey results are shown as a crude sample proportion and are not design-weighted prevalence estimates.
-- The map graphic remains illustrative; record coordinates are stored but not yet rendered as a geographic map.
+- The map uses the supplied administrative boundary datasets for province, kabupaten/kota, kecamatan and desa; vaccination points are not rendered.
 - The offline queue currently covers vaccination events only.
 - No API exchange with iSIKHNAS is configured. Agree identifiers, data definitions, validation and credentials with the iSIKHNAS data owner before production exchange.
